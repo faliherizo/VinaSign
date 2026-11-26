@@ -1209,6 +1209,104 @@
           "statut": 422
         }
       ]
+    },
+    "signataire.parcours-authentification": {
+      "description": "Prépare une enveloppe « document » dont le signataire doit vérifier son identité par un code (niveau renforcé), l'envoie et capture le lien reçu par courriel",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/langue",
+          "capturer": {
+            "langue": "$.valeurs[?code=fr].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=document].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-signataire",
+          "capturer": {
+            "invite": "$.valeurs[?code=invite].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/niveau-authentification",
+          "capturer": {
+            "renforce": "$.valeurs[?code=renforce].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-champ",
+          "capturer": {
+            "texte": "$.valeurs[?code=texte].code",
+            "zone": "$.valeurs[?code=signature].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-auth-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-AUTH-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Noé Bergeron",
+              "courriel": "noe-${unique}@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 1,
+              "niveau": "${renforce}"
+            }
+          ],
+          "capturer": {
+            "camille": "$.signataires[0].id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents",
+          "statut": 201,
+          "capturer": {
+            "url": "$.url",
+            "depot": "$.id"
+          }
+        },
+        {
+          "appel": "PUT ${url}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "statut": 204
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents/${depot}/confirmation"
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send"
+        },
+        {
+          "courriel": {
+            "destinataire": "noe-${unique}@exemple.ca",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
     }
   },
   "ecrans": {
@@ -1235,6 +1333,10 @@
       "chemin": "${signataire}/s/${lien}",
       "titre": "Signer un document|Sign a document",
       "largeur": 1680
+    },
+    "Portail — connexion (rôle manquant)": {
+      "chemin": "/connexion?motif=role",
+      "titre": "Connexion|Sign in"
     }
   }
 }

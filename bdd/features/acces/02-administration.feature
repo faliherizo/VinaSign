@@ -29,3 +29,18 @@ Fonctionnalité: Accès — organisations, utilisateurs du portail et applicatio
   Scénario: L'écran de connexion du portail est accessible à toutes les largeurs
     Quand j'ouvre l'écran "Portail — connexion"
     Alors l'écran est accessible à 390, 768, 1280 et 1680 px de large
+
+  @VS-014 @VS-121
+  Scénario: Un compte sans le rôle requis est informé à l'écran de connexion, accessible à toutes les largeurs
+    Quand j'ouvre l'écran "Portail — connexion (rôle manquant)"
+    Alors je vois "n'a pas le rôle requis"
+    Et l'écran est accessible à 390, 768, 1280 et 1680 px de large
+
+  @VS-121 @VS-053
+  Scénario: L'administrateur de l'organisation consulte sa facturation, accessible à toutes les largeurs
+    Quand j'exécute le cas "portail.preparateur"
+    Alors la plateforme se comporte comme attendu
+    Quand je me connecte au portail avec MFA en tant que "admin-sig-${unique}@exemple.ca"
+    Et je clique sur "Facturation"
+    Alors je vois "Facturation"
+    Et l'écran est accessible à 390, 768, 1280 et 1680 px de large

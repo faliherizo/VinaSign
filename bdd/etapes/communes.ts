@@ -117,8 +117,14 @@ async function controlerAccessibilite(page: Page): Promise<void> {
         if (l > 2 && h > 2) chevauchements.push(`${a.textContent?.trim().slice(0, 30)} / ${b.textContent?.trim().slice(0, 30)}`)
       }
     }
-    return { deborde: document.documentElement.scrollWidth > window.innerWidth + 1, petits, chevauchements }
+    const deborde = document.documentElement.scrollWidth > window.innerWidth + 1
+    // Éléments qui dépassent le bord droit sans qu'aucun de leurs descendants ne dépasse : les vrais responsables.
+    const depassent = (e: Element) => e.getBoundingClientRect().right > window.innerWidth + 1
+    const debordants = deborde ? [...document.body.querySelectorAll('*')].filter((e) => depassent(e) && ![...e.children].some(depassent)
+      && !e.closest('.defilement')).map((e) => e.outerHTML.slice(0, 80)) : []
+    return { deborde, debordants, petits, chevauchements }
   })
+  expect(bilan.debordants, 'débordement horizontal (éléments en cause)').toEqual([])
   expect(bilan.deborde, 'débordement horizontal').toBe(false)
   expect(bilan.petits, 'cibles < 24 px').toEqual([])
   expect(bilan.chevauchements, 'éléments superposés').toEqual([])

@@ -41,8 +41,11 @@ Fonctionnalité: Signataire — signer un document à la main, scellé et horoda
     Alors la plateforme se comporte comme attendu
     Quand je me connecte au portail en tant que "prep-sig-${unique}@exemple.ca"
     Et je clique sur "Enveloppes"
-    Et je clique sur "Nouvelle enveloppe"
-    Et je saisis "PORTAIL-${UNIQUE}" dans le champ "Référence"
+    Alors je vois "enveloppe(s) affichée(s)"
+    Et l'écran est accessible à 390, 768, 1280 et 1680 px de large
+    Quand je clique sur "Nouvelle enveloppe"
+    Alors l'écran est accessible à 390, 768, 1280 et 1680 px de large
+    Quand je saisis "PORTAIL-${UNIQUE}" dans le champ "Référence"
     Et je choisis "Document" dans la liste "Mode de l'enveloppe"
     Et je saisis "${dansUnMois}" dans le champ "Date limite de signature"
     Et je joins un document PDF dans le champ "Document à signer"
@@ -52,6 +55,11 @@ Fonctionnalité: Signataire — signer un document à la main, scellé et horoda
     Alors l'écran est accessible, sans débordement ni superposition
     Quand je clique sur "Envoyer pour signature"
     Alors je vois "PORTAIL-${UNIQUE}"
+    Et l'écran est accessible à 390, 768, 1280 et 1680 px de large
+    Quand je clique sur "PORTAIL-${UNIQUE}"
+    Alors je vois "Page 1 / 1"
+    Et je vois le lien "Télécharger le PDF"
+    Et l'écran est accessible à 390, 768, 1280 et 1680 px de large
     Quand j'exécute le cas "portail.enveloppe-envoyee"
     Alors la plateforme se comporte comme attendu
     Quand j'ouvre l'écran "Signataire — signature manuscrite"

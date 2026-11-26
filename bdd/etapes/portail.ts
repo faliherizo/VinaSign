@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 import { When } from './fixtures'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -9,16 +9,24 @@ import { PDF_MINIMAL, substituer } from '../outils/cas'
  * OIDC du bac à sable en connexion interactive. La personne saisit son identité et ses revendications (courriel
  * attesté, méthode d'authentification, audience de l'API), comme le ferait l'annuaire de son organisation.
  */
-When('je me connecte au portail en tant que {string}', async ({ page, monde }, personne: string) => {
-  const courriel = substituer(personne, monde.variables)
+async function connecter(page: Page, courriel: string, amr: string[]): Promise<void> {
   await page.goto('/')
   await page.getByRole('button', { name: /^Se connecter$/i }).first().click()
   await page.locator('input[name="username"]').fill(courriel)
   await page.locator('textarea[name="claims"]').fill(JSON.stringify({
-    email: courriel, email_verified: true, amr: ['pwd'], aud: [process.env.VINASIGN_PORTAIL_AUDIENCE ?? 'api://vinasign-bdd'],
+    email: courriel, email_verified: true, amr, aud: [process.env.VINASIGN_PORTAIL_AUDIENCE ?? 'api://vinasign-bdd'],
   }))
   await page.getByRole('button', { name: /Sign-in/i }).or(page.locator('input[type=submit]')).first().click()
   await expect(page.getByRole('button', { name: /Se déconnecter/i })).toBeVisible()
+}
+
+When('je me connecte au portail en tant que {string}', async ({ page, monde }, personne: string) => {
+  await connecter(page, substituer(personne, monde.variables), ['pwd'])
+})
+
+/** Administrateur d'organisation : son rôle n'est accordé qu'après une authentification multifacteur (VS-014). */
+When('je me connecte au portail avec MFA en tant que {string}', async ({ page, monde }, personne: string) => {
+  await connecter(page, substituer(personne, monde.variables), ['pwd', 'mfa'])
 })
 
 /** Document joint au formulaire : un PDF valide d'une page, produit par le harnais (aucun fichier figé). */
