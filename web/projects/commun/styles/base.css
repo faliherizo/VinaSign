@@ -1,0 +1,111 @@
+/*
+ * Base commune du portail et de l'écran du signataire : éléments natifs et composants récurrents, tous tirés des jetons.
+ * Cibles d'au moins 44 px, focus toujours visible et jamais masqué (2.4.7, 2.4.11), mouvement réduit sur demande (2.3.3).
+ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-block: var(--vs-espace-6); }
+body {
+  margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--vs-fond); color: var(--vs-texte);
+  font-family: var(--vs-police); font-size: var(--vs-taille-m); line-height: var(--vs-interligne);
+  overflow-wrap: break-word;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+h1, h2, h3 { line-height: var(--vs-interligne-titre); margin: 0 0 var(--vs-espace-3); text-wrap: balance; }
+h1 { font-size: var(--vs-taille-titre-1); letter-spacing: -.01em; }
+h2 { font-size: var(--vs-taille-titre-2); }
+h3 { font-size: var(--vs-taille-titre-3); }
+p { margin: 0 0 var(--vs-espace-3); }
+img, video, canvas { max-width: 100%; }
+code { font-family: var(--vs-police-chasse-fixe); font-size: .92em; background: var(--vs-surface-alt); border-radius: var(--vs-rayon-s);
+  padding: .1em .35em; overflow-wrap: anywhere; }
+
+a { color: var(--vs-lien); text-underline-offset: .2em; }
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible { outline: var(--vs-focus-epaisseur) solid var(--vs-focus); outline-offset: var(--vs-focus-decalage); }
+[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
+
+/* Boutons : secondaire par défaut ; « principal » pour l'action attendue, « danger » pour une action irréversible. */
+button, .vs-bouton {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--vs-espace-2);
+  min-height: var(--vs-cible); min-width: var(--vs-cible); max-width: 100%; padding: var(--vs-espace-2) var(--vs-espace-4);
+  font: inherit; font-weight: 600; line-height: 1.25; text-align: center; text-decoration: none; cursor: pointer;
+  color: var(--vs-primaire); background: var(--vs-surface); border: 2px solid var(--vs-primaire); border-radius: var(--vs-rayon-s);
+  transition: background-color var(--vs-duree), color var(--vs-duree), border-color var(--vs-duree);
+}
+button:hover:not(:disabled), .vs-bouton:hover { background: var(--vs-primaire-doux); }
+button.principal, .vs-bouton.principal { color: var(--vs-sur-primaire); background: var(--vs-primaire); border-color: var(--vs-primaire); }
+button.principal:hover:not(:disabled), .vs-bouton.principal:hover { background: var(--vs-primaire-survol); border-color: var(--vs-primaire-survol); }
+button.danger { color: var(--vs-surface); background: var(--vs-erreur); border-color: var(--vs-erreur); }
+button.danger:hover:not(:disabled) { background: var(--vs-erreur); text-decoration: underline; }
+button:disabled { color: var(--vs-desactive-texte); background: var(--vs-desactive-fond); border-color: var(--vs-desactive-texte); cursor: not-allowed; }
+
+/* Champs de saisie. */
+label { font-weight: 600; }
+input:not([type=checkbox], [type=radio], [type=file]), select, textarea {
+  min-height: var(--vs-cible); width: 100%; max-width: 100%; min-width: 0; padding: var(--vs-espace-2) var(--vs-espace-3);
+  font: inherit; color: var(--vs-texte); background: var(--vs-surface);
+  border: 1px solid var(--vs-bordure); border-radius: var(--vs-rayon-s);
+}
+input[readonly] { background: var(--vs-surface-alt); }
+input[type=checkbox], input[type=radio] { width: 24px; height: 24px; margin: 10px; flex-shrink: 0; accent-color: var(--vs-primaire); }
+input[type=file] { min-height: var(--vs-cible); max-width: 100%; font: inherit; }
+input[type=file]::file-selector-button {
+  min-height: var(--vs-cible); margin-inline-end: var(--vs-espace-3); padding: 0 var(--vs-espace-4); font: inherit; font-weight: 600; cursor: pointer;
+  color: var(--vs-primaire); background: var(--vs-surface); border: 2px solid var(--vs-primaire); border-radius: var(--vs-rayon-s);
+}
+[aria-invalid=true] { border-color: var(--vs-erreur) !important; border-width: 2px !important; }
+fieldset { margin: 0; min-width: 0; padding: var(--vs-espace-4); border: 1px solid var(--vs-separateur); border-radius: var(--vs-rayon-m);
+  background: var(--vs-surface); }
+legend { font-weight: 700; padding: 0 var(--vs-espace-2); }
+
+/* Tableaux : en-têtes sur fond distinct, défilement horizontal confiné à leur région. */
+table { border-collapse: collapse; width: 100%; background: var(--vs-surface); }
+th, td { text-align: left; vertical-align: top; padding: var(--vs-espace-2) var(--vs-espace-3); border-bottom: 1px solid var(--vs-separateur); }
+thead th { background: var(--vs-surface-alt); font-weight: 700; }
+.defilement { overflow-x: auto; border: 1px solid var(--vs-separateur); border-radius: var(--vs-rayon-m); }
+
+details > summary { min-height: var(--vs-cible); display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+
+/* Composants récurrents. */
+.vs-carte { background: var(--vs-surface); border: 1px solid var(--vs-separateur); border-radius: var(--vs-rayon-m); padding: var(--vs-espace-5);
+  box-shadow: var(--vs-ombre-1); min-width: 0; }
+.bandeau { margin: 0; padding: var(--vs-espace-4); border-left: 6px solid var(--vs-primaire); border-radius: var(--vs-rayon-s);
+  background: var(--vs-info-fond); color: var(--vs-texte); }
+.bandeau > :last-child { margin-bottom: 0; }
+.bandeau.erreur { border-color: var(--vs-erreur); background: var(--vs-erreur-fond); color: var(--vs-texte); }
+.bandeau.succes { border-color: var(--vs-succes); background: var(--vs-succes-fond); }
+.erreur { color: var(--vs-erreur); font-weight: 600; }
+.succes { color: var(--vs-succes); font-weight: 600; }
+.aide { color: var(--vs-texte-doux); }
+.vs-vide { padding: var(--vs-espace-6) var(--vs-espace-4); text-align: center; color: var(--vs-texte-doux); background: var(--vs-surface);
+  border: 2px dashed var(--vs-separateur); border-radius: var(--vs-rayon-m); }
+.vs-chargement { display: flex; align-items: center; gap: var(--vs-espace-3); color: var(--vs-texte-doux); }
+.vs-chargement::before { content: ""; width: 1.25rem; height: 1.25rem; flex-shrink: 0; border-radius: 50%;
+  border: 3px solid var(--vs-separateur); border-top-color: var(--vs-primaire); animation: vs-rotation .8s linear infinite; }
+@keyframes vs-rotation { to { transform: rotate(1turn); } }
+.vs-actions { display: flex; flex-wrap: wrap; gap: var(--vs-espace-3); align-items: center; }
+.vs-pastille { display: inline-flex; align-items: center; gap: var(--vs-espace-1); padding: .1rem var(--vs-espace-2); border-radius: var(--vs-rayon-rond);
+  font-size: var(--vs-taille-s); font-weight: 700; background: var(--vs-primaire-doux); color: var(--vs-texte); }
+
+/* Lien d'évitement : hors écran jusqu'au focus, puis par-dessus l'en-tête, jamais sous lui. */
+.evitement { position: absolute; left: var(--vs-espace-2); top: var(--vs-espace-2); z-index: 10; transform: translateY(-200%);
+  display: inline-flex; align-items: center; min-height: var(--vs-cible); padding: 0 var(--vs-espace-4); font-weight: 700;
+  background: var(--vs-surface); color: var(--vs-lien); border-radius: var(--vs-rayon-s); box-shadow: var(--vs-ombre-2); }
+.evitement:focus { transform: none; }
+
+.visuellement-masque { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (forced-colors: active) {
+  button, .vs-bouton { border: 2px solid ButtonText; }
+  .bandeau, .vs-carte { border: 1px solid CanvasText; }
+}

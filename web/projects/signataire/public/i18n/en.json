@@ -74,5 +74,15 @@
   "authentification.identiteEnCours": "Verification in progress with the provider… This page updates by itself.",
   "authentification.identiteEchouee": "Identity verification did not succeed. You can try again.",
   "authentification.identiteDelai": "No result has arrived from the provider yet. Please restart the verification.",
-  "erreur.verification-identite-indisponible": "Identity verification is not available at the moment. Please contact the sender of the document."
+  "erreur.verification-identite-indisponible": "Identity verification is not available at the moment. Please contact the sender of the document.",
+  "entete.service": "Secure electronic signature · VinaSign",
+  "pied.aideTitre": "Need help?",
+  "pied.aide": "Contact the person or organization who sent you this document: they can answer your questions or send you a new link.",
+  "pied.lienPersonnel": "This link is personal: do not forward it to anyone.",
+  "progression.titre": "Signing steps",
+  "progression.consentement": "Consent",
+  "progression.authentification": "Verification",
+  "progression.signature": "Read and sign",
+  "progression.fin": "Done",
+  "progression.faite": "step completed"
 }

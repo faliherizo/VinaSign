@@ -1,14 +1,18 @@
+<p class="retour"><a routerLink="/enveloppes">{{ i18n.t('document.retour') }}</a></p>
 <h1>{{ i18n.t('envoi.titre') }}</h1>
-<form (submit)="$event.preventDefault(); envoyer()">
+<p class="aide">{{ i18n.t('envoi.intro') }}</p>
+<form class="formulaire" (submit)="$event.preventDefault(); envoyer()">
   <fieldset>
     <legend>{{ i18n.t('envoi.enveloppe') }}</legend>
-    <label>{{ i18n.t('envoi.reference') }}
-      <input name="reference" [readonly]="brouillon() !== null" required maxlength="200" autocomplete="off" [value]="reference()" (input)="reference.set(texte($event))" />
-    </label>
-    <vs-liste-referentiel type="mode-enveloppe" attributRequis="deposeDocument" [(valeur)]="mode" [messageErreur]="i18n.t('envoi.erreurListe')" />
-    <label>{{ i18n.t('envoi.echeance') }}
-      <input name="echeance" type="date" [readonly]="brouillon() !== null" required [value]="echeance()" (input)="echeance.set(texte($event))" />
-    </label>
+    <div class="grille">
+      <label>{{ i18n.t('envoi.reference') }}
+        <input name="reference" [readonly]="brouillon() !== null" required maxlength="200" autocomplete="off" [value]="reference()" (input)="reference.set(texte($event))" />
+      </label>
+      <vs-liste-referentiel type="mode-enveloppe" attributRequis="deposeDocument" [(valeur)]="mode" [messageErreur]="i18n.t('envoi.erreurListe')" />
+      <label>{{ i18n.t('envoi.echeance') }}
+        <input name="echeance" type="date" [readonly]="brouillon() !== null" required [value]="echeance()" (input)="echeance.set(texte($event))" />
+      </label>
+    </div>
   </fieldset>
   <fieldset>
     <legend>{{ i18n.t('envoi.document') }}</legend>
@@ -21,6 +25,7 @@
     <label class="case"><input type="checkbox" [checked]="dansLOrdre()" (change)="dansLOrdre.set(!dansLOrdre())" />{{ i18n.t('envoi.dansLOrdre') }}</label>
     @for (s of signataires(); track $index; let i = $index) {
       <div class="signataire" role="group" [attr.aria-label]="i18n.t('envoi.signataire') + ' ' + (i + 1)">
+        <p class="rang" aria-hidden="true">{{ i + 1 }}</p>
         <label>{{ i18n.t('envoi.nom') }}
           <input [name]="'nom' + i" required maxlength="200" autocomplete="name" [value]="s.nom" (input)="modifier(i, 'nom', texte($event))" />
         </label>
@@ -37,13 +42,13 @@
     <button type="button" (click)="ajouter()">{{ i18n.t('envoi.ajouter') }}</button>
   </fieldset>
   @if (echec(); as e) {
-    <p class="erreur" role="alert">{{ i18n.t('envoi.echec.' + e) }}</p>
+    <p class="bandeau erreur" role="alert">{{ i18n.t('envoi.echec.' + e) }}</p>
   }
   @if (envoi() && etape(); as e) {
-    <p class="succes" aria-live="polite">{{ i18n.t('envoi.etape.' + e) }}</p>
+    <p class="vs-chargement" aria-live="polite">{{ i18n.t('envoi.etape.' + e) }}</p>
   }
-  <div class="titre">
+  <div class="vs-actions barre-envoi">
     <button type="submit" name="placer" [disabled]="envoi()" (click)="choisirSuite('placement')">{{ i18n.t('envoi.placer') }}</button>
-    <button type="submit" name="envoyer" [disabled]="envoi()" (click)="choisirSuite('envoi')">{{ i18n.t('envoi.envoyer') }}</button>
+    <button type="submit" name="envoyer" class="principal" [disabled]="envoi()" (click)="choisirSuite('envoi')">{{ i18n.t('envoi.envoyer') }}</button>
   </div>
 </form>

@@ -8,3 +8,4 @@ export * from './lib/langue.service';
 export * from './lib/traduction.service';
 export * from './lib/liste-referentiel';
 export * from './lib/chargeur-pdf';
+export * from './lib/titre-traduit';

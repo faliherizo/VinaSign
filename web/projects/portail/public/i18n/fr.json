@@ -126,7 +126,7 @@
   "document.nature.original": "Document à signer",
   "document.nature.final": "Document final signé et scellé",
   "placement.outils": "Placer les zones",
-  "placement.consigne": "Choisissez la personne et le type de zone, puis touchez l'endroit voulu du document. Glissez une zone pour la déplacer, son coin bleu pour la redimensionner ; au clavier, utilisez les flèches (avec Majuscule pour la taille).",
+  "placement.consigne": "Choisissez la personne et le type de zone, puis touchez l'endroit voulu du document ou utilisez « Ajouter une zone à la page ». Une zone se déplace et se redimensionne avec les boutons qui apparaissent quand elle est choisie, au clavier avec les flèches (avec Majuscule pour la taille), ou en la glissant.",
   "placement.pour": "Signataire de la zone",
   "placement.type": "Type de zone",
   "placement.annuler": "Annuler",
@@ -185,5 +185,14 @@
   "accueil.appel.titre": "Essayer VinaSign",
   "accueil.appel.texte": "Créez l'espace de votre organisation, puis invitez vos préparateurs.",
   "accueil.appel.inscription": "Créer une organisation",
-  "accueil.avis": "Démonstration : les certificats de cachet et d'horodatage viennent d'une autorité de démonstration, non reconnue par les lecteurs PDF ; les données présentées sont fictives."
+  "accueil.avis": "Démonstration : les certificats de cachet et d'horodatage viennent d'une autorité de démonstration, non reconnue par les lecteurs PDF ; les données présentées sont fictives.",
+  "pied.aide": "Besoin d'aide ? Écrivez à l'administrateur de votre organisation ou vérifiez d'abord que le service fonctionne normalement :",
+  "pied.etat": "consulter l'état du service",
+  "pied.operateur": "VinaSign est opéré par Vina IT Solution. Conçu pour la WCAG 2.2 AA et le SGQRI 008 3.0.",
+  "enveloppes.chargement": "Chargement des enveloppes…",
+  "enveloppes.aucuneAide": "Créez votre première enveloppe : déposez un document, ajoutez les signataires et envoyez.",
+  "envoi.intro": "Tous les champs sont obligatoires. Vous pourrez placer les zones de signature sur le document avant l'envoi.",
+  "etat.chargement": "Chargement de l'état du service…",
+  "inscription.obligatoires": "Les champs marqués d'un astérisque (*) sont obligatoires.",
+  "connexion.methode": "Vous serez dirigé vers le service de connexion de votre organisation ; le gestionnaire de mots de passe, la clé d'accès et le copier-coller y restent permis."
 }

@@ -1,4 +1,14 @@
-.evitement { position: absolute; left: -10000px; }
-.evitement:focus { position: static; display: inline-block; padding: .75rem; }
-.entete { display: flex; justify-content: flex-end; padding: 1rem; }
-main { padding: 1rem; max-width: 60rem; margin: 0 auto; }
+:host { display: flex; flex-direction: column; flex: 1; }
+.entete { background: var(--vs-surface); border-bottom: 1px solid var(--vs-separateur); box-shadow: var(--vs-ombre-1); }
+.barre, main, .pied { width: 100%; max-width: 76rem; margin-inline: auto; padding-inline: var(--vs-gouttiere); }
+.barre { display: flex; flex-wrap: wrap; gap: var(--vs-espace-3); align-items: flex-end; justify-content: space-between; padding-block: var(--vs-espace-3); }
+.service { display: flex; align-items: center; gap: var(--vs-espace-2); margin: 0; min-height: var(--vs-cible); font-weight: 700; color: var(--vs-texte-doux); }
+.logo { flex-shrink: 0; }
+.logo rect { fill: var(--vs-primaire); }
+.logo path { fill: none; stroke: var(--vs-sur-primaire); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+vs-liste-referentiel { min-width: 10rem; }
+main { flex: 1; padding-block: var(--vs-espace-5) var(--vs-espace-7); }
+main:focus { outline: none; }
+.pied { padding-block: var(--vs-espace-5); border-top: 1px solid var(--vs-separateur); font-size: var(--vs-taille-s); color: var(--vs-texte-doux); }
+.pied p { margin: 0 0 var(--vs-espace-2); max-width: var(--vs-largeur-lecture); }
+.pied strong { color: var(--vs-texte); }

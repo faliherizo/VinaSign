@@ -1,9 +1,9 @@
 <h1>{{ i18n.t('facturation.titre') }}</h1>
 @if (erreur()) {
-  <p class="erreur" role="alert">{{ i18n.t(erreur()) }}</p>
+  <p class="bandeau erreur" role="alert">{{ i18n.t(erreur()) }}</p>
 }
 @if (situation(); as s) {
-  <section aria-labelledby="facturation-abonnement">
+  <section class="vs-carte" aria-labelledby="facturation-abonnement">
     <h2 id="facturation-abonnement">{{ i18n.t('facturation.abonnement') }}</h2>
     @if (s.plan) {
       <dl class="abonnement">
@@ -15,18 +15,18 @@
       <p>{{ i18n.t('facturation.aucun') }}</p>
     }
   </section>
-  <section aria-labelledby="facturation-choisir">
+  <section class="vs-carte" aria-labelledby="facturation-choisir">
     <h2 id="facturation-choisir">{{ i18n.t('facturation.choisir') }}</h2>
     <form class="choix" (submit)="$event.preventDefault(); payer()">
       <vs-liste-referentiel type="plan" [(valeur)]="plan" [messageErreur]="i18n.t('facturation.erreur')" />
-      <button type="submit" [disabled]="envoi() || !plan()">{{ i18n.t('facturation.payer') }}</button>
+      <button type="submit" class="principal" [disabled]="envoi() || !plan()">{{ i18n.t('facturation.payer') }}</button>
     </form>
     <p class="aide">{{ i18n.t('facturation.aidePaiement') }}</p>
   </section>
-  <section aria-labelledby="facturation-factures">
+  <section class="vs-carte" aria-labelledby="facturation-factures">
     <h2 id="facturation-factures">{{ i18n.t('facturation.factures') }}</h2>
     @if (s.factures.length === 0) {
-      <p>{{ i18n.t('facturation.aucuneFacture') }}</p>
+      <p class="vs-vide">{{ i18n.t('facturation.aucuneFacture') }}</p>
     } @else {
       <div class="defilement" tabindex="0" role="region" [attr.aria-label]="i18n.t('facturation.factures')">
         <table>

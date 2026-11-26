@@ -18,6 +18,9 @@ describe('App (signataire)', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Sign a document');
     expect(fixture.nativeElement.querySelector('label').textContent).toBe('Language');
+    const pied = fixture.nativeElement.querySelector('footer.pied') as HTMLElement;
+    expect(pied.textContent).withContext('aide au même endroit à chaque étape (WCAG 3.2.6)').toContain('pied.aide');
+    expect(pied.textContent).toContain('pied.lienPersonnel');
   });
 
   it('injecte la configuration lue à l\'exécution', () => {

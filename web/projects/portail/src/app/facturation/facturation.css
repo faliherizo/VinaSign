@@ -1,15 +1,11 @@
-:host { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
-section { min-width: 0; }
-.abonnement { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin: 0 0 1rem; }
-.abonnement dt { font-weight: 600; }
-.abonnement dd { margin: 0; }
-.choix { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
-button { min-height: 44px; min-width: 44px; padding: 0 1rem; }
-.aide { margin: .5rem 0 0; }
-.defilement { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; }
-th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--bordure, #6b6b6b); vertical-align: top; }
-.liens { display: flex; flex-wrap: wrap; gap: .5rem; }
-.liens a { display: inline-flex; align-items: center; min-height: 44px; }
-.erreur { color: #a4001d; font-weight: 600; }
-@media (prefers-color-scheme: dark) { .erreur { color: #ff9b9b; } }
+:host { display: flex; flex-direction: column; gap: var(--vs-espace-5); min-width: 0; }
+h1 { margin: 0; }
+h2 { font-size: var(--vs-taille-l); }
+.abonnement { display: flex; flex-wrap: wrap; gap: var(--vs-espace-3) var(--vs-espace-6); margin: 0 0 var(--vs-espace-4); }
+.abonnement dt { color: var(--vs-texte-doux); font-weight: 600; }
+.abonnement dd { margin: 0; font-size: var(--vs-taille-l); font-weight: 700; }
+.choix { display: flex; flex-wrap: wrap; gap: var(--vs-espace-3); align-items: flex-end; }
+.choix vs-liste-referentiel { flex: 1 1 14rem; max-width: 22rem; }
+.aide { margin: var(--vs-espace-3) 0 0; }
+.liens { display: flex; flex-wrap: wrap; gap: var(--vs-espace-2); }
+.liens a { display: inline-flex; align-items: center; min-height: var(--vs-cible); }

@@ -74,5 +74,15 @@
   "authentification.identiteEnCours": "Vérification en cours chez le fournisseur… Cette page se met à jour d'elle-même.",
   "authentification.identiteEchouee": "La vérification d'identité n'a pas réussi. Vous pouvez recommencer.",
   "authentification.identiteDelai": "Aucun résultat n'est encore parvenu du fournisseur. Recommencez la vérification.",
-  "erreur.verification-identite-indisponible": "La vérification d'identité n'est pas offerte pour le moment. Communiquez avec l'expéditeur du document."
+  "erreur.verification-identite-indisponible": "La vérification d'identité n'est pas offerte pour le moment. Communiquez avec l'expéditeur du document.",
+  "entete.service": "Signature électronique sécurisée · VinaSign",
+  "pied.aideTitre": "Besoin d'aide ?",
+  "pied.aide": "Communiquez avec la personne ou l'organisation qui vous a envoyé ce document : elle peut répondre à vos questions ou vous envoyer un nouveau lien.",
+  "pied.lienPersonnel": "Ce lien vous est personnel : ne le transférez à personne.",
+  "progression.titre": "Étapes de la signature",
+  "progression.consentement": "Consentement",
+  "progression.authentification": "Vérification",
+  "progression.signature": "Lecture et signature",
+  "progression.fin": "Terminé",
+  "progression.faite": "étape terminée"
 }

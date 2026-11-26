@@ -1,9 +1,22 @@
 <a class="evitement" href="#contenu">{{ i18n.t('evitement') }}</a>
 <header class="entete">
-  <vs-liste-referentiel [type]="configuration.referentielLangue" [valeur]="langues.langue()"
-                        (valeurChange)="langues.choisir($event)" [messageErreur]="i18n.t('langue.erreur')" />
+  <div class="barre">
+    <p class="service">
+      <svg class="logo" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true" focusable="false">
+        <rect width="32" height="32" rx="8" />
+        <path d="M8 17.5l5 5L24 10" />
+      </svg>
+      <span>{{ i18n.t('entete.service') }}</span>
+    </p>
+    <vs-liste-referentiel [type]="configuration.referentielLangue" [valeur]="langues.langue()"
+                          (valeurChange)="langues.choisir($event)" [messageErreur]="i18n.t('langue.erreur')" />
+  </div>
 </header>
 <main id="contenu" tabindex="-1">
   <h1>{{ i18n.t('titre') }}</h1>
   <router-outlet />
 </main>
+<footer class="pied">
+  <p><strong>{{ i18n.t('pied.aideTitre') }}</strong> {{ i18n.t('pied.aide') }}</p>
+  <p>{{ i18n.t('pied.lienPersonnel') }}</p>
+</footer>

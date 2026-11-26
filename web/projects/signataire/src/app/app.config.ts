@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { CONFIGURATION, ConfigurationVinaSign } from '@vinasign/commun';
+import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
+import { CONFIGURATION, ConfigurationVinaSign, TitreTraduit } from '@vinasign/commun';
 import { routes } from './app.routes';
 import { intercepteurSession } from './api/session-signataire';
 import { ChargeurPdf, ChargeurPdfJs } from '@vinasign/commun';
@@ -13,6 +13,7 @@ export function configurationApplication(configuration: ConfigurationVinaSign): 
       provideBrowserGlobalErrorListeners(),
       provideZoneChangeDetection({ eventCoalescing: true }),
       provideRouter(routes, withComponentInputBinding()),
+      { provide: TitleStrategy, useExisting: TitreTraduit },
       provideHttpClient(withInterceptors([intercepteurSession])),
       { provide: ChargeurPdf, useClass: ChargeurPdfJs },
       { provide: CONFIGURATION, useValue: configuration },

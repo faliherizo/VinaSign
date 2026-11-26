@@ -1,12 +1,12 @@
 <h1>{{ i18n.t('referentiels.titre') }}</h1>
-<p>{{ i18n.t('referentiels.intro') }}</p>
+<p class="intro">{{ i18n.t('referentiels.intro') }}</p>
 @if (erreur()) {
-  <p class="erreur" role="alert">{{ i18n.t('referentiels.erreur') }}</p>
+  <p class="bandeau erreur" role="alert">{{ i18n.t('referentiels.erreur') }}</p>
 }
 @for (r of liste(); track r.code) {
-  <section [attr.aria-labelledby]="'ref-' + r.code">
+  <section class="vs-carte" [attr.aria-labelledby]="'ref-' + r.code">
     <h2 [id]="'ref-' + r.code">{{ r.libelle }}</h2>
-    <div class="defilement" tabindex="0">
+    <div class="defilement" tabindex="0" role="region" [attr.aria-labelledby]="'ref-' + r.code">
       <table>
         <thead><tr><th scope="col">{{ i18n.t('referentiels.code') }}</th><th scope="col">{{ i18n.t('referentiels.libelle') }}</th></tr></thead>
         <tbody>

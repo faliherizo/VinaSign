@@ -1,12 +1,9 @@
-.pad { border: 1px solid #5c5c5c; border-radius: 0.5rem; padding: 1rem; margin: 0; min-width: 0; }
-.modes { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-button { min-height: 44px; min-width: 44px; padding: 0.5rem 1rem; font: inherit; border: 1px solid #1f4e79; border-radius: 0.375rem;
-  background: #fff; color: #1f4e79; cursor: pointer; }
-button[aria-checked='true'] { background: #1f4e79; color: #fff; }
-button:disabled { color: #595959; border-color: #767676; cursor: not-allowed; }
-button:focus-visible, input:focus-visible, canvas:focus-visible { outline: 3px solid #b35900; outline-offset: 2px; }
-canvas { display: block; width: 100%; max-width: 600px; aspect-ratio: 10 / 3; border: 2px dashed #5c5c5c; border-radius: 0.375rem;
-  background: #fff; touch-action: none; margin-bottom: 0.5rem; }
-label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
-input { width: 100%; max-width: 600px; min-height: 44px; font: inherit; padding: 0.5rem; border: 1px solid #5c5c5c; border-radius: 0.375rem;
-  box-sizing: border-box; }
+.pad { margin: 0; padding: var(--vs-espace-4); }
+.modes { display: flex; gap: var(--vs-espace-2); flex-wrap: wrap; margin-bottom: var(--vs-espace-3); }
+button[aria-checked='true'] { color: var(--vs-sur-primaire); background: var(--vs-primaire); border-color: var(--vs-primaire); }
+button[aria-checked='true']::before { content: "✓"; }
+canvas { display: block; width: 100%; max-width: 600px; aspect-ratio: 10 / 3; margin-bottom: var(--vs-espace-2); background: var(--vs-document);
+  border: 2px dashed var(--vs-bordure); border-radius: var(--vs-rayon-s); touch-action: none; cursor: crosshair; }
+p { margin: 0 0 var(--vs-espace-2); color: var(--vs-texte-doux); }
+label { display: block; margin-bottom: var(--vs-espace-1); }
+input { max-width: 600px; }

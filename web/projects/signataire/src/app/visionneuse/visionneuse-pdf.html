@@ -1,6 +1,6 @@
 @switch (etat()) {
-  @case ('chargement') { <p role="status">{{ i18n.t('document.chargement') }}</p> }
-  @case ('erreur') { <p role="alert" class="erreur">{{ i18n.t('document.erreur') }}</p> }
+  @case ('chargement') { <p class="vs-chargement" role="status">{{ i18n.t('document.chargement') }}</p> }
+  @case ('erreur') { <p role="alert" class="bandeau erreur">{{ i18n.t('document.erreur') }}</p> }
   @default {
     <section class="pages" [attr.aria-label]="i18n.t('document.titre')">
       @for (page of pages(); track page.numero) {

@@ -126,7 +126,7 @@
   "document.nature.original": "Document to sign",
   "document.nature.final": "Final signed and sealed document",
   "placement.outils": "Place fields",
-  "placement.consigne": "Choose the person and field type, then tap the spot on the document. Drag a field to move it, its blue corner to resize it; with the keyboard, use the arrow keys (with Shift for size).",
+  "placement.consigne": "Choose the person and the field type, then tap the desired spot on the document or use “Add a field to page”. A field is moved and resized with the buttons shown when it is selected, with the arrow keys (with Shift for size), or by dragging it.",
   "placement.pour": "Field signer",
   "placement.type": "Field type",
   "placement.annuler": "Undo",
@@ -185,5 +185,14 @@
   "accueil.appel.titre": "Try VinaSign",
   "accueil.appel.texte": "Create your organization's space, then invite your preparers.",
   "accueil.appel.inscription": "Create an organization",
-  "accueil.avis": "Demo: the seal and timestamp certificates come from a demonstration authority, not recognised by PDF readers; the data shown is fictitious."
+  "accueil.avis": "Demo: the seal and timestamp certificates come from a demonstration authority, not recognised by PDF readers; the data shown is fictitious.",
+  "pied.aide": "Need help? Contact your organization's administrator, or first check that the service is running normally:",
+  "pied.etat": "view the service status",
+  "pied.operateur": "VinaSign is operated by Vina IT Solution. Designed for WCAG 2.2 AA and SGQRI 008 3.0.",
+  "enveloppes.chargement": "Loading envelopes…",
+  "enveloppes.aucuneAide": "Create your first envelope: upload a document, add the signers and send.",
+  "envoi.intro": "All fields are required. You can place the signature fields on the document before sending.",
+  "etat.chargement": "Loading the service status…",
+  "inscription.obligatoires": "Fields marked with an asterisk (*) are required.",
+  "connexion.methode": "You will be taken to your organization's sign-in service; password managers, passkeys and copy-paste remain allowed there."
 }

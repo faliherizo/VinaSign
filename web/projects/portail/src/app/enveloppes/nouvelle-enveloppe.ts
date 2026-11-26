@@ -1,5 +1,5 @@
 import { Component, InjectionToken, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LangueService, ListeReferentiel, TraductionService } from '@vinasign/commun';
 import { Observable, concatMap, map, of, tap } from 'rxjs';
 import { EnveloppesService, NouveauSignataire } from './enveloppes.service';
@@ -25,7 +25,7 @@ export type EtapeEnvoi = 'creation' | 'depot' | 'signataires' | 'envoi';
  */
 @Component({
   selector: 'app-nouvelle-enveloppe',
-  imports: [ListeReferentiel],
+  imports: [ListeReferentiel, RouterLink],
   templateUrl: './nouvelle-enveloppe.html',
   styleUrl: './enveloppes.css',
 })

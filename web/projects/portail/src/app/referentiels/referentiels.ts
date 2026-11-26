@@ -6,6 +6,7 @@ import { forkJoin, of, switchMap } from 'rxjs';
 @Component({
   selector: 'app-referentiels',
   templateUrl: './referentiels.html',
+  styleUrl: './referentiels.css',
 })
 export class Referentiels {
   private readonly referentiels = inject(ReferentielService);

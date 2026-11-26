@@ -1,0 +1,115 @@
+/*
+ * Jetons du système de design VinaSign, partagés par le portail et l'écran du signataire.
+ * Toute couleur d'interface passe par ces jetons : les rapports de contraste des paires utilisées (texte ≥ 4,5:1,
+ * limites de composants et focus ≥ 3:1, WCAG 2.2 AA) sont calculés par qualite/contrastes.test.mjs, dans les deux thèmes.
+ * Seules des valeurs #rrggbb figurent dans les blocs de couleurs, pour que le calcul porte sur la couleur réellement rendue.
+ */
+:root {
+  color-scheme: light dark;
+
+  --vs-fond: #f4f6f9;
+  --vs-surface: #ffffff;
+  --vs-surface-alt: #eaeff5;
+  --vs-texte: #172231;
+  --vs-texte-doux: #4a5768;
+  --vs-bordure: #6c7889;
+  --vs-separateur: #d5dce5;
+  --vs-primaire: #0b57a4;
+  --vs-primaire-survol: #08437f;
+  --vs-sur-primaire: #ffffff;
+  --vs-primaire-doux: #e6f0fa;
+  --vs-lien: #0a4f96;
+  --vs-focus: #0b57a4;
+  --vs-focus-inverse: #ffffff;
+  --vs-erreur: #b0241c;
+  --vs-erreur-fond: #fcefee;
+  --vs-succes: #1b6a34;
+  --vs-succes-fond: #ebf6ee;
+  --vs-alerte: #8a4600;
+  --vs-alerte-fond: #fff3df;
+  --vs-info-fond: #e8f1fb;
+  --vs-desactive-fond: #e3e8ee;
+  --vs-desactive-texte: #4f5b6b;
+  --vs-heros-debut: #0b3d6b;
+  --vs-heros-fin: #135a9c;
+  --vs-sur-heros: #ffffff;
+  --vs-sur-heros-doux: #d9e8f6;
+  /* Page d'un document : blanche dans les deux thèmes, comme le papier qu'elle représente. */
+  --vs-document: #ffffff;
+  --vs-zone-trait: #8a3b00;
+  --vs-zone-fond: #fff4e0;
+  --vs-zone-texte: #3d1a00;
+  --vs-zone-choisie: #0b57a4;
+
+  --vs-police: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --vs-police-chasse-fixe: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --vs-taille-s: .875rem;
+  --vs-taille-m: 1rem;
+  --vs-taille-l: 1.125rem;
+  --vs-taille-titre-3: 1.125rem;
+  --vs-taille-titre-2: clamp(1.3rem, 1.1rem + 1vw, 1.6rem);
+  --vs-taille-titre-1: clamp(1.65rem, 1.3rem + 1.6vw, 2.25rem);
+  --vs-taille-heros: clamp(1.9rem, 1.2rem + 3.4vw, 3.1rem);
+  --vs-interligne: 1.55;
+  --vs-interligne-titre: 1.2;
+
+  --vs-espace-1: .25rem;
+  --vs-espace-2: .5rem;
+  --vs-espace-3: .75rem;
+  --vs-espace-4: 1rem;
+  --vs-espace-5: 1.5rem;
+  --vs-espace-6: 2rem;
+  --vs-espace-7: 3rem;
+  --vs-gouttiere: clamp(1rem, .6rem + 2vw, 2rem);
+  --vs-largeur-contenu: 72rem;
+  --vs-largeur-lecture: 44rem;
+
+  --vs-rayon-s: .375rem;
+  --vs-rayon-m: .625rem;
+  --vs-rayon-l: 1rem;
+  --vs-rayon-rond: 999px;
+
+  --vs-ombre-1: 0 1px 2px rgb(16 24 40 / 8%), 0 1px 3px rgb(16 24 40 / 6%);
+  --vs-ombre-2: 0 4px 12px rgb(16 24 40 / 10%), 0 2px 4px rgb(16 24 40 / 6%);
+
+  --vs-focus-epaisseur: 3px;
+  --vs-focus-decalage: 2px;
+  /* Cible minimale : 44 px, l'écran du signataire s'adressant au grand public (WCAG 2.5.8 renforcé). */
+  --vs-cible: 44px;
+  --vs-duree: 150ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vs-fond: #0e1319;
+    --vs-surface: #161d26;
+    --vs-surface-alt: #1f2833;
+    --vs-texte: #e7edf4;
+    --vs-texte-doux: #b3bfcc;
+    --vs-bordure: #8996a7;
+    --vs-separateur: #2e3947;
+    --vs-primaire: #8cc4ff;
+    --vs-primaire-survol: #b5d9ff;
+    --vs-sur-primaire: #0b1d2e;
+    --vs-primaire-doux: #17304a;
+    --vs-lien: #9ccdff;
+    --vs-focus: #ffc266;
+    --vs-focus-inverse: #ffc266;
+    --vs-erreur: #ffa8a3;
+    --vs-erreur-fond: #3a1a1c;
+    --vs-succes: #86dc9d;
+    --vs-succes-fond: #12301d;
+    --vs-alerte: #ffc27a;
+    --vs-alerte-fond: #3a2a12;
+    --vs-info-fond: #14263a;
+    --vs-desactive-fond: #262f3a;
+    --vs-desactive-texte: #aab5c2;
+    --vs-heros-debut: #0b2540;
+    --vs-heros-fin: #123e69;
+    --vs-sur-heros: #ffffff;
+    --vs-sur-heros-doux: #d9e8f6;
+
+    --vs-ombre-1: 0 1px 2px rgb(0 0 0 / 40%);
+    --vs-ombre-2: 0 6px 16px rgb(0 0 0 / 45%);
+  }
+}

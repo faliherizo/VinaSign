@@ -29,6 +29,13 @@ describe('App (portail)', () => {
     expect(el.querySelector('.outils button')).toBeNull();
   });
 
+  it('offre la même aide au pied de chaque écran : l\'état du service', () => {
+    const { el } = cadre(null);
+    const pied = el.querySelector('footer.pied')!;
+    expect(pied.querySelector('a')?.getAttribute('href')).toBe('/etat');
+    expect(pied.textContent).toContain('pied.aide');
+  });
+
   it('offre la connexion, puis nomme la personne, n\'ouvre la facturation qu\'à l\'administrateur et permet de se déconnecter', async () => {
     const client = new FauxClientOidc();
     const { el, detecter } = cadre(client);

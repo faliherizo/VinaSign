@@ -1,20 +1,23 @@
-<p><a class="action" routerLink="/enveloppes">{{ i18n.t('document.retour') }}</a></p>
-<h1>{{ i18n.t('document.titre') }}@if (enveloppe(); as e) { — {{ e.referenceExterne }} }</h1>
-@if (erreur()) { <p class="erreur" role="alert">{{ i18n.t(erreur()) }}</p> }
+<p class="retour"><a routerLink="/enveloppes">{{ i18n.t('document.retour') }}</a></p>
+<div class="titre">
+  <h1>{{ i18n.t('document.titre') }}@if (enveloppe(); as e) { — {{ e.referenceExterne }} }</h1>
+  @if (donnees()) {
+    <a class="vs-bouton" [href]="lien()" [attr.download]="enveloppe()!.referenceExterne + '.pdf'">{{ i18n.t('document.telecharger') }}</a>
+  }
+</div>
+@if (erreur()) { <p class="bandeau erreur" role="alert">{{ i18n.t(erreur()) }}</p> }
 <p class="succes" aria-live="polite">{{ message() ? i18n.t(message()) : '' }}</p>
-@if (enveloppe() && nature() === null) { <p>{{ i18n.t('document.aucun') }}</p> }
+@if (enveloppe() && nature() === null) { <p class="vs-vide">{{ i18n.t('document.aucun') }}</p> }
+@if (!enveloppe() && !erreur()) { <p class="vs-chargement" role="status">{{ i18n.t('document.chargement') }}</p> }
 @if (donnees(); as d) {
-  <div class="titre">
-    <p>{{ i18n.t('document.nature.' + nature()) }}</p>
-    <a class="action" [href]="lien()" [attr.download]="enveloppe()!.referenceExterne + '.pdf'">{{ i18n.t('document.telecharger') }}</a>
-  </div>
+  <p class="vs-pastille">{{ i18n.t('document.nature.' + nature()) }}</p>
   <!-- Le document final porte les signatures elles-mêmes : les cadres des zones n'y sont plus dessinés. -->
   <app-placement-zones [donnees]="d" [signataires]="enveloppe()!.signataires" [types]="types()" [modifiable]="modifiable()"
                        [zones]="nature() === 'final' ? [] : zones()" (zonesChange)="zones.set($event)" />
   @if (modifiable()) {
-    <div class="titre">
+    <div class="vs-actions barre-envoi">
       <button type="button" (click)="enregistrer()" [disabled]="occupe()">{{ i18n.t('placement.enregistrer') }}</button>
-      <button type="button" (click)="envoyer()" [disabled]="occupe()">{{ i18n.t('envoi.envoyer') }}</button>
+      <button type="button" class="principal" (click)="envoyer()" [disabled]="occupe()">{{ i18n.t('envoi.envoyer') }}</button>
     </div>
   }
 }

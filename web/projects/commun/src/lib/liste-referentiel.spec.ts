@@ -84,6 +84,15 @@ describe('ListeReferentiel', () => {
     http.expectOne(() => true).flush('', { status: 500, statusText: 'panne' });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toBe('essai');
+    expect(fixture.nativeElement.querySelector('label').textContent).withContext('la liste garde un nom accessible').toBe('essai');
+  });
+
+  it('ne montre la liste qu\'avec son libellé : rien d\'anonyme pendant le chargement', () => {
+    creer();
+    expect(select()).toBeNull();
+    expect(fixture.nativeElement.querySelector('.attente')).not.toBeNull();
+    repondre();
+    expect(select()).not.toBeNull();
   });
 
   it('offre une première option sans valeur, choisie par défaut, quand l\'appelant la nomme', () => {

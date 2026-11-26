@@ -6,9 +6,19 @@
     <span>{{ m.nomAffiche }}</span>
   </header>
 }
+@if (rangCourant() >= 0) {
+  <ol class="progression" [attr.aria-label]="i18n.t('progression.titre')">
+    @for (p of progression(); track p; let i = $index) {
+      <li [class.faite]="i < rangCourant()" [attr.aria-current]="i === rangCourant() ? 'step' : null">
+        <span class="puce" aria-hidden="true">{{ i < rangCourant() ? '✓' : i + 1 }}</span>
+        <span>{{ i18n.t('progression.' + p) }}@if (i < rangCourant()) {<span class="visuellement-masque"> — {{ i18n.t('progression.faite') }}</span>}</span>
+      </li>
+    }
+  </ol>
+}
 @switch (etape()) {
   @case ('ouverture') {
-    <p role="status">{{ i18n.t('parcours.ouverture') }}</p>
+    <p class="vs-chargement" role="status">{{ i18n.t('parcours.ouverture') }}</p>
   }
   @case ('erreur') {
     <div role="alert" class="bandeau erreur">
@@ -20,10 +30,10 @@
     <p role="status" class="bandeau">{{ i18n.t('parcours.attente') }}</p>
   }
   @case ('consentement') {
-    <section aria-labelledby="titre-consentement">
+    <section class="vs-carte" aria-labelledby="titre-consentement">
       <h2 id="titre-consentement">{{ i18n.t('consentement.titre') }}</h2>
       <p class="salutation">{{ i18n.t('parcours.bonjour') }} {{ session()?.nom }}</p>
-      <div class="texte-consentement">{{ session()?.texteConsentement }}</div>
+      <div class="texte-consentement" tabindex="0" role="region" aria-labelledby="titre-consentement">{{ session()?.texteConsentement }}</div>
       <div class="case">
         <input id="accepte" type="checkbox" [checked]="accepte()" (change)="accepte.set($any($event.target).checked)" />
         <label for="accepte">{{ i18n.t('consentement.accepte') }}</label>
@@ -32,34 +42,36 @@
     </section>
   }
   @case ('authentification') {
-    <vs-etape-authentification [niveau]="session()?.niveauExige ?? null" (authentifie)="authentifie()" />
+    <vs-etape-authentification class="vs-carte" [niveau]="session()?.niveauExige ?? null" (authentifie)="authentifie()" />
   }
   @case ('signature') {
-    <section aria-labelledby="titre-document" class="lecture">
-      <h2 id="titre-document">{{ i18n.t('document.titre') }}</h2>
-      <vs-visionneuse-pdf [donnees]="document()!" [champs]="champs()" />
-    </section>
-    @if (peutSigner()) {
-      <section aria-labelledby="titre-signature" class="action">
-        <h2 id="titre-signature">{{ i18n.t('signature.titre') }}</h2>
-        <vs-champs-saisie [champs]="champs()" [(valeurs)]="valeurs" [manquants]="manquants()" />
-        <vs-pad-signature (changement)="signature.set($event)" />
-        <p aria-live="polite" class="message">{{ messageEnvoi() }}</p>
-        <div class="boutons">
-          <button type="button" class="principal" [disabled]="envoi()" (click)="signer()">{{ i18n.t('signature.signer') }}</button>
-          @if (peutRefuser()) {
-            <button type="button" [disabled]="envoi()" (click)="demanderRefus()">{{ i18n.t('refus.ouvrir') }}</button>
-          }
-        </div>
+    <div class="espace-signature">
+      <section aria-labelledby="titre-document" class="lecture">
+        <h2 id="titre-document">{{ i18n.t('document.titre') }}</h2>
+        <vs-visionneuse-pdf [donnees]="document()!" [champs]="champs()" />
       </section>
-    } @else if (peutRefuser()) {
-      <div class="boutons"><button type="button" (click)="demanderRefus()">{{ i18n.t('refus.ouvrir') }}</button></div>
-    }
+      @if (peutSigner()) {
+        <section aria-labelledby="titre-signature" class="action vs-carte">
+          <h2 id="titre-signature">{{ i18n.t('signature.titre') }}</h2>
+          <vs-champs-saisie [champs]="champs()" [(valeurs)]="valeurs" [manquants]="manquants()" />
+          <vs-pad-signature (changement)="signature.set($event)" />
+          <p aria-live="polite" class="message">{{ messageEnvoi() }}</p>
+          <div class="boutons">
+            <button type="button" class="principal" [disabled]="envoi()" (click)="signer()">{{ i18n.t('signature.signer') }}</button>
+            @if (peutRefuser()) {
+              <button type="button" [disabled]="envoi()" (click)="demanderRefus()">{{ i18n.t('refus.ouvrir') }}</button>
+            }
+          </div>
+        </section>
+      } @else if (peutRefuser()) {
+        <div class="boutons"><button type="button" (click)="demanderRefus()">{{ i18n.t('refus.ouvrir') }}</button></div>
+      }
+    </div>
   }
   @case ('refus') {
-    <section aria-labelledby="titre-refus">
+    <section class="vs-carte" aria-labelledby="titre-refus">
       <h2 id="titre-refus">{{ i18n.t('refus.titre') }}</h2>
-      <p>{{ i18n.t('refus.explication') }}</p>
+      <p class="bandeau">{{ i18n.t('refus.explication') }}</p>
       <vs-liste-referentiel [type]="motifs" [(valeur)]="motif" [messageErreur]="i18n.t('refus.motifsErreur')" />
       <div class="boutons">
         <button type="button" class="danger" [disabled]="envoi()" (click)="refuser()">{{ i18n.t('refus.confirmer') }}</button>
@@ -68,9 +80,9 @@
     </section>
   }
   @case ('signe') {
-    <div role="status" class="bandeau succes"><h2>{{ i18n.t('fin.signe') }}</h2><p>{{ i18n.t('fin.signeDetail') }}</p></div>
+    <div role="status" class="bandeau succes fin"><span class="symbole" aria-hidden="true">✓</span><div><h2>{{ i18n.t('fin.signe') }}</h2><p>{{ i18n.t('fin.signeDetail') }}</p></div></div>
   }
   @case ('refuse') {
-    <div role="status" class="bandeau"><h2>{{ i18n.t('fin.refuse') }}</h2><p>{{ i18n.t('fin.refuseDetail') }}</p></div>
+    <div role="status" class="bandeau fin"><div><h2>{{ i18n.t('fin.refuse') }}</h2><p>{{ i18n.t('fin.refuseDetail') }}</p></div></div>
   }
 }

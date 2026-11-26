@@ -126,6 +126,9 @@ describe('Parcours du signataire', () => {
     expect(document.documentElement.lang).toBe('fr');
     expect(c.el.textContent).toContain('Je consens.');
     expect(c.el.textContent).toContain('Marie');
+    const progression = [...c.el.querySelectorAll('.progression li')];
+    expect(progression.map((e) => e.textContent?.trim())).toEqual(['1progression.consentement', '2progression.signature', '3progression.fin']);
+    expect(progression[0].getAttribute('aria-current')).toBe('step');
     const continuer = c.bouton('consentement.continuer')!;
     expect(continuer.disabled).toBeTrue();
     c.el.querySelector<HTMLInputElement>('#accepte')!.click();
@@ -171,6 +174,7 @@ describe('Parcours du signataire', () => {
     signature.flush(null, { status: 204, statusText: 'No Content' });
     c.rendre();
     expect(c.el.querySelector('.succes')!.textContent).toContain('fin.signe');
+    expect(c.el.querySelector('.progression [aria-current=step]')!.textContent).toContain('progression.fin');
     expect(c.avis).toEqual(['ready', 'signed']);
   });
 
@@ -250,6 +254,10 @@ describe('Parcours du signataire', () => {
     ouvrir(c.http, vue({ aConsenti: true, niveauExige: 'renforce' }));
     c.rendre();
     expect(c.el.querySelector('vs-etape-authentification')).not.toBeNull();
+    const etapes = () => [...c.el.querySelectorAll('.progression li')];
+    expect(etapes().length).withContext('la vérification figure dans la progression').toBe(4);
+    expect(etapes()[1].getAttribute('aria-current')).toBe('step');
+    expect(etapes()[0].textContent).toContain('progression.faite');
     c.http.expectNone(API + 'document');
     const etape = c.fixture.debugElement.query((d) => d.name === 'vs-etape-authentification');
     etape.triggerEventHandler('authentifie');
@@ -258,6 +266,7 @@ describe('Parcours du signataire', () => {
     c.rendre();
     expect(c.el.querySelector('vs-etape-authentification')).toBeNull();
     expect(c.el.querySelector('vs-visionneuse-pdf')).not.toBeNull();
+    expect(etapes()[2].getAttribute('aria-current')).toBe('step');
   });
 
   it('ne redemande pas l\'identité déjà attestée par l\'application', () => {

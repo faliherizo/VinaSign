@@ -50,11 +50,11 @@ describe('ListeEnveloppes (écran)', () => {
     expect(cartes[0].textContent).toContain('1 / 2');
     expect(cartes[1].textContent).toContain('inconnu');
     expect(el.querySelector('a[href="/enveloppes/nouvelle"]')).not.toBeNull();
-    (el.querySelector('.cartes + button') as HTMLButtonElement).click();
+    (el.querySelector('.vs-actions button') as HTMLButtonElement).click();
     http.expectOne(`${API}/envelopes?limite=25&apres=c1`).flush({ elements: [resume('3')], suivant: null });
     detecter();
     expect(el.querySelectorAll('.cartes li').length).toBe(3);
-    expect(el.querySelector('.cartes + button')).toBeNull();
+    expect(el.querySelector('.vs-actions button')).toBeNull();
   });
 
   it('filtre par statut, le premier choix étant « Tous »', () => {

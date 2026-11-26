@@ -13,6 +13,12 @@ import { EtapeAuthentification } from '../authentification/etape-authentificatio
 
 export type Etape = 'ouverture' | 'erreur' | 'consentement' | 'authentification' | 'attente' | 'signature' | 'refus' | 'signe' | 'refuse';
 
+/** Étapes annoncées au signataire ; chaque étape du parcours y correspond, sauf l'ouverture, l'attente et l'erreur. */
+type EtapeAnnoncee = 'consentement' | 'authentification' | 'signature' | 'fin';
+const ANNONCE: Partial<Record<Etape, EtapeAnnoncee>> = {
+  consentement: 'consentement', authentification: 'authentification', signature: 'signature', refus: 'signature', signe: 'fin', refuse: 'fin',
+};
+
 /** Référentiel des motifs de refus (VS-045). */
 export const REFERENTIEL_MOTIFS = 'motif-refus';
 
@@ -56,6 +62,14 @@ export class Parcours implements OnInit {
   /** Marque de l'organisation (VS-123) : sa couleur remplace celle des actions principales, son logo et son nom s'affichent. */
   protected readonly marque = computed(() => this.session()?.marque ?? null);
   protected readonly peutSigner = computed(() => this.permis('signer'));
+  /** Étapes du parcours, la vérification d'identité n'y figurant que si elle est exigée. */
+  protected readonly progression = computed<readonly EtapeAnnoncee[]>(() =>
+    this.session()?.niveauExige ? ['consentement', 'authentification', 'signature', 'fin'] : ['consentement', 'signature', 'fin']);
+  /** Rang de l'étape courante dans la progression ; -1 quand aucune n'est annoncée. */
+  protected readonly rangCourant = computed(() => {
+    const annoncee = ANNONCE[this.etape()];
+    return annoncee ? this.progression().indexOf(annoncee) : -1;
+  });
   protected readonly peutRefuser = computed(() => this.permis('refuser'));
 
   ngOnInit(): void {

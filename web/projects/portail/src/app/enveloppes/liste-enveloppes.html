@@ -1,20 +1,27 @@
 <div class="titre">
   <h1>{{ i18n.t('enveloppes.titre') }}</h1>
   @if (session.aLeRole('preparateur')) {
-    <a class="action" routerLink="/enveloppes/nouvelle">{{ i18n.t('enveloppes.nouvelle') }}</a>
+    <a class="vs-bouton principal" routerLink="/enveloppes/nouvelle">{{ i18n.t('enveloppes.nouvelle') }}</a>
   }
 </div>
-<vs-liste-referentiel type="statut-enveloppe" [(valeur)]="statut" [libelleVide]="i18n.t('enveloppes.tous')" [messageErreur]="i18n.t('enveloppes.erreur')" />
+<div class="filtres vs-carte">
+  <vs-liste-referentiel type="statut-enveloppe" [(valeur)]="statut" [libelleVide]="i18n.t('enveloppes.tous')" [messageErreur]="i18n.t('enveloppes.erreur')" />
+  <p class="compte" aria-live="polite">{{ elements().length }} {{ i18n.t('enveloppes.affichees') }}</p>
+</div>
 @if (erreur()) {
-  <p class="erreur" role="alert">{{ i18n.t('enveloppes.erreur') }}</p>
+  <p class="bandeau erreur" role="alert">{{ i18n.t('enveloppes.erreur') }}</p>
 }
-<p class="compte" aria-live="polite">{{ elements().length }} {{ i18n.t('enveloppes.affichees') }}</p>
-@if (elements().length === 0 && !chargement() && !erreur()) {
-  <p>{{ i18n.t('enveloppes.aucune') }}</p>
+@if (chargement() && elements().length === 0) {
+  <p class="vs-chargement" role="status">{{ i18n.t('enveloppes.chargement') }}</p>
+} @else if (elements().length === 0 && !erreur()) {
+  <div class="vs-vide">
+    <p>{{ i18n.t('enveloppes.aucune') }}</p>
+    @if (session.aLeRole('preparateur')) { <p>{{ i18n.t('enveloppes.aucuneAide') }}</p> }
+  </div>
 } @else {
   <ul class="cartes">
     @for (e of elements(); track e.id) {
-      <li>
+      <li class="vs-carte">
         <p class="reference"><a [routerLink]="['/enveloppes', e.id]">{{ e.referenceExterne }}</a></p>
         <dl>
           <div><dt>{{ i18n.t('enveloppes.statut') }}</dt><dd>{{ libelleStatut(e.statut) }}</dd></div>
@@ -27,5 +34,5 @@
   </ul>
 }
 @if (suivant()) {
-  <button type="button" (click)="plus()" [disabled]="chargement()">{{ i18n.t('enveloppes.plus') }}</button>
+  <div class="vs-actions"><button type="button" (click)="plus()" [disabled]="chargement()">{{ i18n.t('enveloppes.plus') }}</button></div>
 }

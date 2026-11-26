@@ -1,6 +1,9 @@
 <h1>{{ i18n.t('etat.titre') }}</h1>
+@if (!etat() && !erreur()) {
+  <p class="vs-chargement" role="status">{{ i18n.t('etat.chargement') }}</p>
+}
 @if (erreur()) {
-  <p class="erreur" role="alert">{{ i18n.t('etat.erreur') }}</p>
+  <p class="bandeau erreur" role="alert">{{ i18n.t('etat.erreur') }}</p>
 }
 @if (etat(); as e) {
   <p class="global" role="status" [class.perturbe]="gravite(e.impact) > 0">
@@ -9,7 +12,7 @@
   </p>
   <p class="maj">{{ i18n.t('etat.misAJour') }} <time [attr.datetime]="e.le">{{ date(e.le, 'medium') }}</time></p>
 
-  <section aria-labelledby="titre-composants">
+  <section class="vs-carte" aria-labelledby="titre-composants">
     <h2 id="titre-composants">{{ i18n.t('etat.composants') }}</h2>
     <ul class="composants">
       @for (c of composants(); track c) {
@@ -21,7 +24,7 @@
     </ul>
   </section>
 
-  <section aria-labelledby="titre-incidents">
+  <section class="vs-carte" aria-labelledby="titre-incidents">
     <h2 id="titre-incidents">{{ i18n.t('etat.incidents') }}</h2>
     @for (i of enCours(); track i.id) {
       <article class="incident" [attr.aria-labelledby]="'incident-' + i.id">
@@ -38,9 +41,9 @@
     }
   </section>
 
-  <section aria-labelledby="titre-objectifs">
+  <section class="vs-carte" aria-labelledby="titre-objectifs">
     <h2 id="titre-objectifs">{{ i18n.t('etat.objectifs') }}</h2>
-    <div class="defilement" tabindex="0">
+    <div class="defilement" tabindex="0" role="region" aria-labelledby="titre-objectifs">
       <table>
         <thead><tr><th scope="col">{{ i18n.t('etat.objectif') }}</th><th scope="col">{{ i18n.t('etat.cible') }}</th></tr></thead>
         <tbody>
@@ -52,7 +55,7 @@
     </div>
   </section>
 
-  <section aria-labelledby="titre-historique">
+  <section class="vs-carte" aria-labelledby="titre-historique">
     <h2 id="titre-historique">{{ i18n.t('etat.historique') }}</h2>
     @for (i of passes(); track i.id) {
       <details class="incident">

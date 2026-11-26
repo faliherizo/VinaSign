@@ -2,7 +2,7 @@
 @if (vue(); as v) {
   @switch (v.etape) {
     @case ('domaine-a-prouver') {
-      <section aria-labelledby="titre-dns">
+      <section class="vs-carte" aria-labelledby="titre-dns">
         <h2 id="titre-dns">{{ i18n.t('inscription.dnsTitre') }}</h2>
         <p>{{ i18n.t('inscription.dnsExplication') }}</p>
         <dl class="dns">
@@ -20,12 +20,13 @@
 } @else if (envoyee()) {
   <p role="status" class="bandeau">{{ i18n.t('inscription.envoyee') }}</p>
 } @else if (!jeton()) {
-  <p>{{ i18n.t('inscription.intro') }}</p>
-  <form (submit)="$event.preventDefault(); demander()">
-    <label for="organisation">{{ i18n.t('inscription.organisation') }}</label>
+  <p class="intro">{{ i18n.t('inscription.intro') }}</p>
+  <form class="vs-carte" (submit)="$event.preventDefault(); demander()">
+    <p class="aide">{{ i18n.t('inscription.obligatoires') }}</p>
+    <label for="organisation">{{ i18n.t('inscription.organisation') }} <span aria-hidden="true">*</span></label>
     <input id="organisation" type="text" required maxlength="200" autocomplete="organization" [value]="organisation()"
            (input)="organisation.set($any($event.target).value)" />
-    <label for="courriel">{{ i18n.t('inscription.courriel') }}</label>
+    <label for="courriel">{{ i18n.t('inscription.courriel') }} <span aria-hidden="true">*</span></label>
     <input id="courriel" type="email" required maxlength="320" autocomplete="email" [value]="courriel()" (input)="courriel.set($any($event.target).value)" />
     <label for="domaine">{{ i18n.t('inscription.domaine') }}</label>
     <input id="domaine" type="text" maxlength="253" aria-describedby="aide-domaine" [value]="domaine()" (input)="domaine.set($any($event.target).value)" />

@@ -1,0 +1,4 @@
+:host { display: flex; flex-direction: column; gap: var(--vs-espace-5); min-width: 0; }
+h1, .intro { margin: 0; }
+.intro { max-width: var(--vs-largeur-lecture); color: var(--vs-texte-doux); }
+h2 { font-size: var(--vs-taille-l); }

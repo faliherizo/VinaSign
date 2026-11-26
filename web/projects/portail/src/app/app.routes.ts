@@ -15,13 +15,13 @@ export const ROLES = { administrateur: 'administrateur-organisation', preparateu
 
 export const routes: Routes = [
   { path: '', component: Accueil },
-  { path: 'referentiels', component: Referentiels },
-  { path: 'etat', component: Etat },
-  { path: 'inscription', component: Inscription },
-  { path: 'connexion', component: Connexion },
-  { path: 'enveloppes', component: ListeEnveloppes, canActivate: [exigerRole(ROLES.preparateur, ROLES.auditeur)] },
-  { path: 'enveloppes/nouvelle', component: NouvelleEnveloppe, canActivate: [exigerRole(ROLES.preparateur)] },
-  { path: 'enveloppes/:id', component: DocumentEnveloppe, canActivate: [exigerRole(ROLES.preparateur, ROLES.auditeur)] },
-  { path: 'facturation', component: Facturation, canActivate: [exigerRole(ROLES.administrateur)] },
+  { path: 'referentiels', component: Referentiels, title: 'referentiels.titre' },
+  { path: 'etat', component: Etat, title: 'etat.titre' },
+  { path: 'inscription', component: Inscription, title: 'inscription.titre' },
+  { path: 'connexion', component: Connexion, title: 'connexion.titre' },
+  { path: 'enveloppes', component: ListeEnveloppes, title: 'enveloppes.titre', canActivate: [exigerRole(ROLES.preparateur, ROLES.auditeur)] },
+  { path: 'enveloppes/nouvelle', component: NouvelleEnveloppe, title: 'envoi.titre', canActivate: [exigerRole(ROLES.preparateur)] },
+  { path: 'enveloppes/:id', component: DocumentEnveloppe, title: 'document.titre', canActivate: [exigerRole(ROLES.preparateur, ROLES.auditeur)] },
+  { path: 'facturation', component: Facturation, title: 'facturation.titre', canActivate: [exigerRole(ROLES.administrateur)] },
   { path: '**', redirectTo: '' },
 ];

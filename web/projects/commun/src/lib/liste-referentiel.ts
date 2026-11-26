@@ -8,24 +8,30 @@ let rang = 0;
 /**
  * Liste déroulante remplie par un référentiel de l'API : aucune option n'est écrite dans un gabarit. Une valeur ajoutée
  * en base apparaît au prochain chargement ; le libellé de la liste vient lui aussi du référentiel, dans la langue courante.
+ * La liste n'apparaît qu'avec son libellé (WCAG 4.1.2) : le code du référentiel le remplace si le chargement échoue.
  */
 @Component({
   selector: 'vs-liste-referentiel',
   template: `
-    <label [for]="identifiant">{{ libelle() }}</label>
-    <select [id]="identifiant" [value]="valeur()" (change)="choisir($event)" [attr.aria-busy]="chargement()" [attr.aria-describedby]="erreur() ? identifiant + '-erreur' : null">
-      @if (libelleVide()) {
-        <option value="" [selected]="!valeur()">{{ libelleVide() }}</option>
-      }
-      @for (option of options(); track option.code) {
-        <option [value]="option.code" [selected]="option.code === valeur()">{{ option.libelle }}</option>
-      }
-    </select>
+    @if (libelle() || erreur()) {
+      <label [for]="identifiant">{{ libelle() || type() }}</label>
+      <select [id]="identifiant" [value]="valeur()" (change)="choisir($event)" [attr.aria-busy]="chargement()" [attr.aria-describedby]="erreur() ? identifiant + '-erreur' : null">
+        @if (libelleVide()) {
+          <option value="" [selected]="!valeur()">{{ libelleVide() }}</option>
+        }
+        @for (option of options(); track option.code) {
+          <option [value]="option.code" [selected]="option.code === valeur()">{{ option.libelle }}</option>
+        }
+      </select>
+    } @else {
+      <span class="attente" aria-hidden="true"></span>
+    }
     @if (erreur()) {
       <p class="erreur" role="alert" [id]="identifiant + '-erreur'">{{ erreur() }}</p>
     }
   `,
-  styles: `:host { display: flex; flex-direction: column; gap: .25rem; } select { min-height: 44px; }`,
+  styles: `:host { display: flex; flex-direction: column; gap: .25rem; } select { min-height: 44px; }
+    .attente { display: block; height: calc(1.55em + 44px + .25rem); }`,
 })
 export class ListeReferentiel {
   private readonly referentiels = inject(ReferentielService);

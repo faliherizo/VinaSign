@@ -1,7 +1,7 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { CONFIGURATION, ChargeurPdf, ChargeurPdfJs, ConfigurationVinaSign } from '@vinasign/commun';
+import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
+import { CONFIGURATION, ChargeurPdf, ChargeurPdfJs, ConfigurationVinaSign, TitreTraduit } from '@vinasign/commun';
 import { routes } from './app.routes';
 import { CLIENT_OIDC, ClientOidc, creerClientOidc } from './connexion/client-oidc';
 import { jetonIntercepteur } from './connexion/jeton.intercepteur';
@@ -23,6 +23,7 @@ export function configurationApplication(configuration: ConfigurationVinaSign,
       provideBrowserGlobalErrorListeners(),
       provideZoneChangeDetection({ eventCoalescing: true }),
       provideRouter(routes, withComponentInputBinding()),
+      { provide: TitleStrategy, useExisting: TitreTraduit },
       provideHttpClient(withInterceptors([jetonIntercepteur])),
       { provide: CONFIGURATION, useValue: configuration },
       { provide: ChargeurPdf, useClass: ChargeurPdfJs },

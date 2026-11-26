@@ -1,9 +1,11 @@
-:host { display: flex; flex-direction: column; gap: 1rem; max-width: 40rem; min-width: 0; }
-form { display: flex; flex-direction: column; gap: .5rem; }
-input { min-height: 44px; font: inherit; padding: .5rem; border: 1px solid var(--bordure); border-radius: 4px; color: inherit; background: var(--fond); }
-button { min-height: 44px; min-width: 44px; padding: .5rem 1.25rem; align-self: flex-start; }
-.aide { margin: 0; }
-.bandeau { border-left: 6px solid var(--lien); padding: 1rem; margin: 0; }
-.dns { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .25rem 1rem; }
+:host { display: flex; flex-direction: column; gap: var(--vs-espace-4); max-width: var(--vs-largeur-lecture); min-width: 0; }
+h1, .intro { margin: 0; }
+.intro { color: var(--vs-texte-doux); font-size: var(--vs-taille-l); }
+form { display: flex; flex-direction: column; gap: var(--vs-espace-2); }
+label:not(:first-of-type) { margin-top: var(--vs-espace-3); }
+button { align-self: flex-start; margin-top: var(--vs-espace-4); }
+.aide { margin: 0; font-size: var(--vs-taille-s); }
+.dns { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--vs-espace-2) var(--vs-espace-4); margin: 0 0 var(--vs-espace-4); }
+.dns dt { font-weight: 700; }
 .dns dd { margin: 0; overflow-wrap: anywhere; }
-.message { min-height: 1.5em; color: var(--erreur); }
+.message { min-height: 1.5em; margin: 0; color: var(--vs-erreur); font-weight: 600; }

@@ -4,11 +4,11 @@
   <p class="intro">{{ i18n.t('accueil.intro') }}</p>
   <div class="actions">
     @if (session.utilisateur()) {
-      <a class="principal" routerLink="/enveloppes">{{ i18n.t('accueil.mesEnveloppes') }}</a>
+      <a class="vs-bouton principal" routerLink="/enveloppes">{{ i18n.t('accueil.mesEnveloppes') }}</a>
     } @else if (session.estOfferte) {
       <button type="button" class="principal" (click)="connecter()">{{ i18n.t('accueil.connecter') }}</button>
     }
-    <a class="secondaire" href="#demonstration">{{ i18n.t('accueil.voirDemo') }}</a>
+    <a class="vs-bouton secondaire" href="#demonstration">{{ i18n.t('accueil.voirDemo') }}</a>
   </div>
 </section>
 
@@ -53,7 +53,7 @@
 <section class="appel" aria-labelledby="appel-titre">
   <h2 id="appel-titre">{{ i18n.t('accueil.appel.titre') }}</h2>
   <p>{{ i18n.t('accueil.appel.texte') }}</p>
-  <a class="principal" routerLink="/inscription">{{ i18n.t('accueil.appel.inscription') }}</a>
+  <a class="vs-bouton principal" routerLink="/inscription">{{ i18n.t('accueil.appel.inscription') }}</a>
 </section>
 
 <p class="avis">{{ i18n.t('accueil.avis') }}</p>
