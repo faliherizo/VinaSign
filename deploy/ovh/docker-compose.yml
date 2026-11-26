@@ -142,7 +142,8 @@ services:
       VINASIGN_FOURNISSEUR_IDENTITE: https://id.vinasign.vinaitsolution.com
     volumes: ["./config/portail.json:/usr/share/nginx/html/config.json:ro"]
     read_only: true
-    tmpfs: ["/tmp", "/etc/nginx/conf.d", "/var/cache/nginx"]
+    # Racine en lecture seule : nginx (uid 101) écrit sa configuration générée et son cache dans ces tmpfs, qui lui appartiennent.
+    tmpfs: ["/tmp:uid=101,gid=101", "/etc/nginx/conf.d:uid=101,gid=101", "/var/cache/nginx:uid=101,gid=101"]
     mem_limit: 64m
     networks: [interne, web]
 
@@ -156,7 +157,8 @@ services:
       VINASIGN_ANCETRES_AUTORISES: "'none'"
     volumes: ["./config/signataire.json:/usr/share/nginx/html/config.json:ro"]
     read_only: true
-    tmpfs: ["/tmp", "/etc/nginx/conf.d", "/var/cache/nginx"]
+    # Racine en lecture seule : nginx (uid 101) écrit sa configuration générée et son cache dans ces tmpfs, qui lui appartiennent.
+    tmpfs: ["/tmp:uid=101,gid=101", "/etc/nginx/conf.d:uid=101,gid=101", "/var/cache/nginx:uid=101,gid=101"]
     mem_limit: 64m
     networks: [interne, web]
 
