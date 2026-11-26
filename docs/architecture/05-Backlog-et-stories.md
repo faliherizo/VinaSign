@@ -196,3 +196,4 @@
 | ID | Story | Critères d'acceptation clés | P | Pts | Sprint | Origine |
 |---|---|---|---|---:|---|---|
 | VS-140 | En tant qu'exploitant, je veux le serveur sur Spring Boot 4 (Spring Framework 7) | CVE-2026-47884 et -47890 corrigées sans exemption ; exemption de securite/donnees/.trivyignore retirée avant le 2027-01-31 ; toutes les portes vertes | M | 8 | — | Trivy 2026-11-26 |
+| VS-141 | En tant qu'exploitant, je veux une CSP sans « unsafe-inline » pour les styles | Nonce par requête posé par le frontal (ngCspNonce) ; ZAP « CSP: style-src unsafe-inline » absent ; aucune régression d'affichage | S | 3 | — | ZAP 2026-11-26 |
