@@ -138,7 +138,9 @@ services:
     <<: *journal
     environment:
       VINASIGN_API_URL: http://vinasign-serveur:8300
-      VINASIGN_ANCETRES_AUTORISES: "'none'"
+      # 'self' : le renouvellement silencieux de la session (connexion-silencieuse.html) s'affiche dans un cadre du
+      # portail lui-même ; aucune autre origine ne peut l'intégrer (détournement de clic).
+      VINASIGN_ANCETRES_AUTORISES: "'self'"
       VINASIGN_FOURNISSEUR_IDENTITE: https://id.vinasign.vinaitsolution.com
     # Médias de la vitrine (vidéo de démonstration, sous-titres, affiche), publiés par bdd/outils/video.mjs publier.
     volumes: ["./config/portail.json:/usr/share/nginx/html/config.json:ro", "./medias:/usr/share/nginx/html/medias:ro"]
