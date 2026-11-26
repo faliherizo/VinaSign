@@ -1,0 +1,151 @@
+# VinaSign — déploiement continu DevSecOps de la démonstration https://vinasign.vinaitsolution.com (VPS OVH partagé).
+#
+#   secrets           : gitleaks sur tout l'historique, Trivy sur l'arborescence (vulnérabilités, secrets, configuration).
+#   qualite           : serveur (tests, architecture, couverture par classe) et interfaces (specs, couverture, constructions).
+#   construire-livrer : quatre images construites ici (jamais sur le VPS), analysées par Trivy (bloquant : vulnérabilité
+#                       HAUTE ou CRITIQUE corrigeable), SBOM CycloneDX publiées, livrées par SSH (docker save | docker load),
+#                       puis deploy/ovh/deployer.sh : sauvegarde, démarrage, santé, retour arrière avec restauration.
+#   verification      : la pile déployée répond, en-têtes de sécurité présents, console Keycloak non exposée ; DAST passif
+#                       (OWASP ZAP baseline) sur le portail et l'écran du signataire, rapport publié.
+#
+# Déclenché à chaque poussée sur develop, ou à la main. Secrets du dépôt : DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY,
+# DEPLOY_KNOWN_HOSTS. Détail : docs/exploitation/deploiement-ovh.md.
+name: deployer-vinasign
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: deployer-vinasign
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  URL_PORTAIL: https://vinasign.vinaitsolution.com
+  URL_SIGNATAIRE: https://signer.vinasign.vinaitsolution.com
+  URL_ID: https://id.vinasign.vinaitsolution.com
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gitleaks (tout l'historique)
+        run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.21.2 git /repo --no-banner --redact --exit-code 1
+      - name: Trivy (dépendances, secrets, configuration)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-dirs: infra/bacs-a-sable,securite/resultats
+          trivyignores: securite/donnees/.trivyignore
+
+  qualite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21', cache: maven }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm, cache-dependency-path: web/package-lock.json }
+      - name: Serveur — tests, architecture, couverture par classe et agrégée
+        working-directory: serveur
+        run: mvn -B verify
+      - name: Interfaces — specs et couverture par fichier
+        working-directory: web
+        run: npm ci && for p in commun portail signataire; do npx ng test "$p" --watch=false; done
+
+  construire-livrer:
+    needs: [secrets, qualite]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: vinasign-demo
+      url: https://vinasign.vinaitsolution.com
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: echo "version=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21', cache: maven }
+      - name: Artefact du serveur
+        working-directory: serveur
+        run: mvn -B -q -DskipTests package
+      - name: Images
+        run: |
+          V=${{ steps.version.outputs.version }}
+          docker build -t vinasign/serveur:$V serveur
+          docker build --build-arg APPLICATION=portail -t vinasign/web-portail:$V web
+          docker build --build-arg APPLICATION=signataire -t vinasign/web-signataire:$V web
+          docker build -t vinasign/icp:$V deploy/ovh/icp
+      - name: Trivy sur chaque image (bloquant), SBOM CycloneDX
+        run: |
+          V=${{ steps.version.outputs.version }}
+          for i in serveur web-portail web-signataire icp; do
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/sortie" aquasec/trivy:0.58.1 image \
+              --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress vinasign/$i:$V
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/sortie" aquasec/trivy:0.58.1 image \
+              --format cyclonedx --output /sortie/sbom-$i.cdx.json --no-progress vinasign/$i:$V
+          done
+      - uses: actions/upload-artifact@v4
+        with: { name: "sbom-${{ steps.version.outputs.version }}", path: "sbom-*.cdx.json" }
+      - name: Clé SSH du déploiement
+        env:
+          CLE: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOTES: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$CLE" > ~/.ssh/ovh && chmod 600 ~/.ssh/ovh
+          printf '%s\n' "$HOTES" > ~/.ssh/known_hosts
+          printf 'Host ovh\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/ovh\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 30\n' \
+            "${{ secrets.DEPLOY_HOST }}" "${{ secrets.DEPLOY_USER }}" > ~/.ssh/config
+      - name: Livrer les images au serveur
+        run: |
+          V=${{ steps.version.outputs.version }}
+          docker save vinasign/serveur:$V vinasign/web-portail:$V vinasign/web-signataire:$V vinasign/icp:$V | gzip -1 | ssh ovh 'gunzip | docker load'
+      # Le serveur ne prend du dépôt que deploy/ovh et les scripts qu'il cite ; les images viennent d'ici.
+      - name: Déployer
+        run: |
+          ssh ovh "set -e; cd ~/projets/VinaSign && git fetch --quiet origin && git checkout --quiet --force --detach ${GITHUB_SHA} \
+            && deploy/ovh/deployer.sh ${{ steps.version.outputs.version }}"
+
+  verification:
+    needs: construire-livrer
+    runs-on: ubuntu-latest
+    steps:
+      - name: La pile déployée répond, en-têtes de sécurité compris
+        run: |
+          set -e
+          verifier() { curl -fsS -o /dev/null -w "%{http_code} $1\n" "$1"; }
+          verifier "$URL_PORTAIL/"
+          verifier "$URL_PORTAIL/api/v1/referentiels"
+          verifier "$URL_SIGNATAIRE/"
+          verifier "$URL_ID/realms/vinasign/.well-known/openid-configuration"
+          for u in "$URL_PORTAIL/" "$URL_SIGNATAIRE/"; do
+            h="$(curl -fsSI "$u")"
+            for e in content-security-policy strict-transport-security x-content-type-options referrer-policy; do
+              grep -qi "^$e:" <<< "$h" || { echo "❌ $e absent de $u"; exit 1; }
+            done
+          done
+          [ "$(curl -s -o /dev/null -w '%{http_code}' "$URL_ID/admin/master/console/")" = 404 ] || { echo "❌ console Keycloak exposée"; exit 1; }
+          [ "$(curl -s -o /dev/null -w '%{http_code}' "$URL_ID/realms/master/")" = 404 ] || { echo "❌ royaume master exposé"; exit 1; }
+          echo "✓ VinaSign répond"
+      - name: DAST passif — OWASP ZAP baseline (portail, signataire)
+        run: |
+          mkdir -p zap && chmod 777 zap
+          for u in "$URL_PORTAIL" "$URL_SIGNATAIRE"; do
+            n=$(echo "$u" | sed 's#https://##; s#\..*##')
+            docker run --rm -v "$PWD/zap:/zap/wrk" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t "$u" -r "zap-$n.html" -J "zap-$n.json" -I || true
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: zap, path: zap/ }

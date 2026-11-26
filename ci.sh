@@ -14,7 +14,7 @@ etape() { echo; echo "== $*"; }
 
 etape "1. Serveur : tests, architecture, couverture par classe (≥ 96 %), SBOM, cliquet (aucune baisse)"
 (cd serveur && JAVA_HOME="$JAVA21" mvn -q verify)
-node --test qualite/ > /dev/null
+node --test 'qualite/*.test.mjs' > /dev/null
 node qualite/cliquet.mjs
 
 etape "2. Interfaces : tests et couverture par fichier, constructions de production"

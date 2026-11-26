@@ -1,0 +1,10 @@
+{
+  "apiUrl": "",
+  "languePrincipale": "fr",
+  "referentielLangue": "langue",
+  "connexion": {
+    "emetteur": "https://id.vinasign.vinaitsolution.com/realms/vinasign",
+    "client": "vinasign-portail",
+    "portees": "openid email profile"
+  }
+}

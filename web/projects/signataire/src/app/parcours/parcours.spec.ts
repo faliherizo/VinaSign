@@ -71,6 +71,10 @@ async function jusquaSignature(c: ReturnType<typeof creer>, champs = [champ('t',
 }
 
 describe('Parcours du signataire', () => {
+  // Langue du navigateur fixée : sur un poste en anglais (exécuteur de la CI), la langue de la session (fr) succède à
+  // celle du navigateur et chaque référentiel serait demandé deux fois.
+  beforeEach(() => spyOnProperty(navigator, 'language', 'get').and.returnValue('fr-CA'));
+
   it('retire le jeton de la barre d\'adresse et l\'échange dans le corps de la requête', () => {
     const c = creer('/integre/abc123');
     expect(c.location.replaceState).toHaveBeenCalledWith('/integre');
