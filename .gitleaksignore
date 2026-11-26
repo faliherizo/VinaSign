@@ -1,0 +1,8 @@
+# Constats de gitleaks examinés et écartés, un par un (empreinte : commit, fichier, règle, ligne).
+# Clés RSA générées à l exécution par les tests (KeyPairGenerator) et secret partagé fictif des tests : aucun secret réel.
+db29647cf632569c659b2c253988451e18b35339:sdk/java/vinasign-spring-boot-starter/src/test/java/ca/vinaitsolution/vinasign/spring/VinaSignAutoConfigurationTest.java:private-key:29
+db29647cf632569c659b2c253988451e18b35339:sdk/java/vinasign-spring-boot-starter/src/test/java/ca/vinaitsolution/vinasign/spring/VinaSignAutoConfigurationTest.java:private-key:63
+db29647cf632569c659b2c253988451e18b35339:serveur/src/test/java/ca/vinaitsolution/vinasign/acces/infrastructure/securite/SecuriteJetonsTest.java:private-key:28
+db29647cf632569c659b2c253988451e18b35339:serveur/src/test/java/ca/vinaitsolution/vinasign/acces/infrastructure/securite/SecuriteJetonsTest.java:private-key:38
+db29647cf632569c659b2c253988451e18b35339:serveur/src/test/java/ca/vinaitsolution/vinasign/session/VerificationIdentiteApiTest.java:generic-api-key:50
+db29647cf632569c659b2c253988451e18b35339:serveur/src/test/java/ca/vinaitsolution/vinasign/session/infrastructure/identite/FournisseurIdentiteTest.java:generic-api-key:18
