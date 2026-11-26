@@ -77,6 +77,12 @@ class ReferentielApiTest {
         String url = "/api/v1/referentiels/" + code;
         assertEquals("Kind " + code, corps(get(url + "?langue=en", "Accept-Language", "fr")).get("libelle").asText());
         assertEquals("Kind " + code, corps(get(url, "Accept-Language", "en-CA")).get("libelle").asText());
+        assertEquals("Kind " + code, corps(get(url, "Accept-Language", "en-US,en;q=0.9,fr-CA;q=0.8,fr;q=0.7")).get("libelle").asText(),
+                "liste pondérée d'un vrai navigateur : la langue de plus fort poids");
+        assertEquals("Type " + code, corps(get(url, "Accept-Language", "fr-CA,fr;q=0.9,en-US;q=0.8,en;q=0.7")).get("libelle").asText());
+        assertEquals("Type " + code, corps(get(url, "Accept-Language", "*")).get("libelle").asText(), "joker : langue principale");
+        assertEquals("Type " + code, corps(get(url, "Accept-Language", "fr;q=x,,")).get("libelle").asText(),
+                "en-tête mal formé : langue principale, jamais 400");
         assertEquals("Type " + code, corps(get(url)).get("libelle").asText());
         assertEquals("Type " + code, corps(mvc.perform(MockMvcRequestBuilders.get(url).param("langue", " ")).andReturn().getResponse())
                 .get("libelle").asText(), "paramètre vide : ignoré");

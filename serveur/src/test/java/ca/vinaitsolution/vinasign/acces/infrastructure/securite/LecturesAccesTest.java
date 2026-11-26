@@ -10,7 +10,6 @@ import ca.vinaitsolution.vinasign.referentiel.application.ConsulterReferentiel;
 import ca.vinaitsolution.vinasign.referentiel.application.ListerReferentiels;
 import ca.vinaitsolution.vinasign.referentiel.infrastructure.web.ReferentielController;
 import java.util.List;
-import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -27,7 +26,7 @@ class LecturesAccesTest {
     @Test
     void une_langue_de_navigateur_vide_retombe_sur_la_langue_principale() {
         ListerReferentiels lister = mock(ListerReferentiels.class);
-        new ReferentielController(lister, mock(ConsulterReferentiel.class), new VinaSignProprietes("fr", List.of())).lister(null, Locale.ROOT);
+        new ReferentielController(lister, mock(ConsulterReferentiel.class), new VinaSignProprietes("fr", List.of())).lister(null, "");
         verify(lister).executer(new ca.vinaitsolution.vinasign.commun.domain.CodeLangue("fr"));
     }
 }

@@ -8,7 +8,6 @@ import ca.vinaitsolution.vinasign.referentiel.application.dto.ResumeReferentiel;
 import ca.vinaitsolution.vinasign.referentiel.application.dto.VueReferentiel;
 import ca.vinaitsolution.vinasign.referentiel.domain.CodeReferentiel;
 import java.util.List;
-import java.util.Locale;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -37,22 +36,21 @@ public class ReferentielController {
 
     @GetMapping
     public List<ResumeReferentiel> lister(@RequestParam(required = false) String langue,
-                                          @RequestHeader(value = "Accept-Language", required = false) Locale locale) {
-        return lister.executer(langue(langue, locale));
+                                          @RequestHeader(value = "Accept-Language", required = false) String preferences) {
+        return lister.executer(langue(langue, preferences));
     }
 
     @GetMapping("/{code}")
     public VueReferentiel consulter(@PathVariable String code, @RequestParam(required = false) String langue,
-                                    @RequestHeader(value = "Accept-Language", required = false) Locale locale) {
-        return consulter.executer(new CodeReferentiel(code), langue(langue, locale));
+                                    @RequestHeader(value = "Accept-Language", required = false) String preferences) {
+        return consulter.executer(new CodeReferentiel(code), langue(langue, preferences));
     }
 
     /** Le paramètre explicite prime sur l'en-tête du navigateur, qui prime sur la langue principale configurée. */
-    private CodeLangue langue(String parametre, Locale locale) {
+    private CodeLangue langue(String parametre, String preferences) {
         if (parametre != null && !parametre.isBlank()) {
             return new CodeLangue(parametre);
         }
-        return locale != null && !locale.getLanguage().isBlank()
-                ? new CodeLangue(locale.getLanguage()) : new CodeLangue(proprietes.languePrincipale());
+        return new CodeLangue(PreferenceLangue.depuis(preferences).orElse(proprietes.languePrincipale()));
     }
 }

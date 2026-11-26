@@ -5793,6 +5793,13 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "in" : "header",
+          "name" : "Accept-Language",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "200" : {
@@ -5895,6 +5902,13 @@
         }, {
           "in" : "query",
           "name" : "langue",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "Accept-Language",
           "required" : false,
           "schema" : {
             "type" : "string"

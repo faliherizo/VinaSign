@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+// En-tête d'un vrai Chrome en français : une liste pondérée, pas une seule balise (l'API la refusait : 400).
+const ACCEPT_LANGUAGE = { 'Accept-Language': 'fr-CA,fr;q=0.9,en-US;q=0.8,en;q=0.7' }
+
 /** Démonstration filmée (demo/) : 1280 × 720, enregistrement continu, contre la plateforme démarrée comme pour la BDD. */
 const PORTAIL = process.env.BDD_PORTAIL_URL ?? `http://localhost:${process.env.VINASIGN_PORTAIL_PORT ?? 4300}`
 const SIGNATAIRE = process.env.BDD_SIGNATAIRE_URL ?? `http://localhost:${process.env.VINASIGN_SIGNATAIRE_PORT ?? 4301}`
@@ -11,8 +14,8 @@ export default defineConfig({
   expect: { timeout: 20_000 },
   reporter: [['list']],
   outputDir: 'test-results-demo/brut',
-  use: { baseURL: PORTAIL, locale: 'fr-CA', viewport: { width: 1280, height: 720 }, video: { mode: 'on', size: { width: 1280, height: 720 } } },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], locale: 'fr-CA', viewport: { width: 1280, height: 720 } } }],
+  use: { baseURL: PORTAIL, locale: 'fr-CA', extraHTTPHeaders: ACCEPT_LANGUAGE, viewport: { width: 1280, height: 720 }, video: { mode: 'on', size: { width: 1280, height: 720 } } },
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], locale: 'fr-CA', extraHTTPHeaders: ACCEPT_LANGUAGE, viewport: { width: 1280, height: 720 } } }],
   webServer: [
     { command: 'npx ng serve portail', cwd: '../web', url: PORTAIL, reuseExistingServer: true, timeout: 180_000 },
     { command: 'npx ng serve signataire', cwd: '../web', url: SIGNATAIRE, reuseExistingServer: true, timeout: 180_000 },
