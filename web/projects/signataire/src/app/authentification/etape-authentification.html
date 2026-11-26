@@ -1,0 +1,36 @@
+<section aria-labelledby="titre-authentification">
+  <h2 id="titre-authentification">{{ i18n.t('authentification.titre') }}</h2>
+  @if (exigeIdentite()) {
+    <p>{{ i18n.t('authentification.identiteExplication') }}</p>
+    <div class="boutons">
+      <button type="button" class="principal" [disabled]="occupe() || enVerification()" (click)="verifierIdentite()">{{ i18n.t('authentification.verifierIdentite') }}</button>
+    </div>
+  } @else if (proposerCle()) {
+    <p>{{ i18n.t('authentification.proposerCle') }}</p>
+    <div class="boutons">
+      <button type="button" class="principal" [disabled]="occupe()" (click)="enregistrerCle()">{{ i18n.t('authentification.enregistrerCle') }}</button>
+      <button type="button" [disabled]="occupe()" (click)="continuer()">{{ i18n.t('authentification.plusTard') }}</button>
+    </div>
+  } @else {
+    <p>{{ i18n.t('authentification.explication') }}</p>
+    @if (cles.disponible()) {
+      <div class="boutons">
+        <button type="button" class="principal" [disabled]="occupe()" (click)="avecCle()">{{ i18n.t('authentification.utiliserCle') }}</button>
+      </div>
+      <p class="ou">{{ i18n.t('authentification.ou') }}</p>
+    }
+    <vs-liste-referentiel [type]="canaux" [(valeur)]="canal" [messageErreur]="i18n.t('authentification.canauxErreur')" />
+    <div class="boutons">
+      <button type="button" [disabled]="occupe() || !canal()" (click)="envoyerCode()">{{ i18n.t('authentification.recevoirCode') }}</button>
+    </div>
+    @if (codeEnvoye()) {
+      <label for="code-recu">{{ i18n.t('authentification.code') }}</label>
+      <input id="code-recu" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="12" [value]="code()"
+             (input)="code.set($any($event.target).value)" />
+      <div class="boutons">
+        <button type="button" class="principal" [disabled]="occupe() || !code().trim()" (click)="verifierCode()">{{ i18n.t('authentification.verifier') }}</button>
+      </div>
+    }
+  }
+  <p aria-live="polite" class="message">{{ message() }}</p>
+</section>

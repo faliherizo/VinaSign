@@ -1,0 +1,18 @@
+<p><a class="action" routerLink="/enveloppes">{{ i18n.t('document.retour') }}</a></p>
+<h1>{{ i18n.t('document.titre') }}@if (enveloppe(); as e) { — {{ e.referenceExterne }} }</h1>
+@if (erreur()) { <p class="erreur" role="alert">{{ i18n.t(erreur()) }}</p> }
+<p class="succes" aria-live="polite">{{ message() ? i18n.t(message()) : '' }}</p>
+@if (enveloppe() && nature() === null) { <p>{{ i18n.t('document.aucun') }}</p> }
+@if (donnees(); as d) {
+  <div class="titre">
+    <p>{{ i18n.t('document.nature.' + nature()) }}</p>
+    <a class="action" [href]="lien()" [attr.download]="enveloppe()!.referenceExterne + '.pdf'">{{ i18n.t('document.telecharger') }}</a>
+  </div>
+  <app-placement-zones [donnees]="d" [signataires]="enveloppe()!.signataires" [types]="types()" [modifiable]="modifiable()" [(zones)]="zones" />
+  @if (modifiable()) {
+    <div class="titre">
+      <button type="button" (click)="enregistrer()" [disabled]="occupe()">{{ i18n.t('placement.enregistrer') }}</button>
+      <button type="button" (click)="envoyer()" [disabled]="occupe()">{{ i18n.t('envoi.envoyer') }}</button>
+    </div>
+  }
+}

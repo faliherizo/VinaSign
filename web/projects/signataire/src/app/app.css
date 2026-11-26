@@ -1,0 +1,4 @@
+.evitement { position: absolute; left: -10000px; }
+.evitement:focus { position: static; display: inline-block; padding: .75rem; }
+.entete { display: flex; justify-content: flex-end; padding: 1rem; }
+main { padding: 1rem; max-width: 60rem; margin: 0 auto; }

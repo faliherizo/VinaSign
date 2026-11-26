@@ -1,0 +1,45 @@
+# Bacs à sable des services externes de VinaSign, repris de contractuelle_contrat (VS-ADR-002) : ils se comportent comme
+# les vrais (autorité de certification, horodatage RFC 3161, validateurs pyHanko et veraPDF, conversion).
+# Ports distincts de ceux du contrat, pour que les deux tournent ensemble ; tous configurables par l'environnement.
+name: vinasign-bacs-a-sable
+services:
+  icp:
+    image: vinasign-bac-a-sable:1
+    build: ./outils
+    command: ["sh", "/icp/lancer.sh"]
+    environment:
+      ICP_PORT: ${VS_ICP_PORT:-28090}
+      ICP_URL_PUBLIQUE: http://localhost:${VS_ICP_PORT:-28090}
+      VALIDATION_PORT: ${VS_VALIDATION_PORT:-28093}
+    volumes: ["./icp:/icp:ro", "./icp/etat:/etat"]
+    ports: ["${VS_ICP_PORT:-28090}:${VS_ICP_PORT:-28090}", "${VS_VALIDATION_PORT:-28093}:${VS_VALIDATION_PORT:-28093}"]
+    healthcheck: { test: ["CMD", "curl", "-sf", "http://localhost:${VS_ICP_PORT:-28090}/sante"], interval: 3s, retries: 40 }
+
+  pyhanko:
+    image: vinasign-bac-a-sable:1
+    command: ["python3", "/validation/serveur.py"]
+    network_mode: service:icp
+    environment:
+      VALIDATION_PORT: ${VS_VALIDATION_PORT:-28093}
+    volumes: ["./validation:/validation:ro", "./icp/etat/ac:/etat/ac:ro"]
+    depends_on: { icp: { condition: service_healthy } }
+
+  conversion:
+    image: gotenberg/gotenberg:8.17.3
+    command: ["gotenberg", "--api-timeout=120s"]
+    ports: ["${VS_CONVERSION_PORT:-28030}:3000"]
+
+  verapdf:
+    image: verapdf/rest:latest
+    ports: ["${VS_VERAPDF_PORT:-28092}:8080"]
+
+  # Fournisseur OIDC du portail (VS-014), comme Entra ID : jetons signés, courriel attesté, amr avec ou sans MFA
+  # (scope « sans-mfa »). Le sujet et le courriel sont le client_id présenté par le harnais.
+  oidc:
+    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    environment:
+      SERVER_PORT: "8080"
+      JSON_CONFIG_PATH: /oidc/configuration.json
+    volumes: ["./oidc:/oidc:ro"]
+    ports: ["${VS_OIDC_PORT:-28094}:8080"]
+

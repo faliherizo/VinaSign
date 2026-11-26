@@ -1,0 +1,41 @@
+# Poste de développement : base et courriel. Les identifiants viennent de .env (copie de .env.exemple, jamais dans le dépôt).
+# spring-boot-docker-compose démarre ces services et y branche le serveur sans identifiants dans la configuration.
+name: vinasign-dev
+services:
+  base:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${VINASIGN_DB_NOM:-vinasign}
+      POSTGRES_USER: ${VINASIGN_DB_UTILISATEUR:?définir VINASIGN_DB_UTILISATEUR dans .env}
+      POSTGRES_PASSWORD: ${VINASIGN_DB_MDP:?définir VINASIGN_DB_MDP dans .env}
+      VINASIGN_DB_ROLE_APPLICATIF: ${VINASIGN_DB_ROLE_APPLICATIF:-vinasign_application}
+      VINASIGN_DB_MDP_APPLICATIF: ${VINASIGN_DB_MDP_APPLICATIF:?définir VINASIGN_DB_MDP_APPLICATIF dans .env}
+    ports: ["${VINASIGN_DB_PORT:-55432}:5432"]
+    volumes: ["vinasign-base:/var/lib/postgresql/data", "./base/initialisation:/docker-entrypoint-initdb.d:ro"]
+    healthcheck: { test: ["CMD", "pg_isready", "-d", "${VINASIGN_DB_NOM:-vinasign}"], interval: 3s, retries: 20 }
+
+  courriel:
+    image: axllent/mailpit:v1.21.8
+    ports: ["${VINASIGN_SMTP_PORT:-21025}:1025", "${VINASIGN_MAILPIT_PORT:-28025}:8025"]
+    labels:
+      org.springframework.boot.ignore: "true"
+
+  # Stockage objet (VS-021) : Azurite, compte propre au poste (clé générée dans .env, jamais la clé publique de démonstration).
+  stockage:
+    image: mcr.microsoft.com/azure-storage/azurite:3.33.0
+    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--loose", "--skipApiVersionCheck"]
+    environment:
+      AZURITE_ACCOUNTS: "vinasign:${VINASIGN_AZURITE_CLE:?définir VINASIGN_AZURITE_CLE dans .env}"
+    ports: ["${VINASIGN_STOCKAGE_PORT:-21000}:10000"]
+    labels:
+      org.springframework.boot.ignore: "true"
+
+  # Antivirus (VS-021) : ClamAV, signatures incluses dans l'image et mises à jour au démarrage.
+  antivirus:
+    image: clamav/clamav:1.4
+    ports: ["${VINASIGN_ANTIVIRUS_PORT:-23310}:3310"]
+    labels:
+      org.springframework.boot.ignore: "true"
+
+volumes:
+  vinasign-base:

@@ -1,0 +1,17 @@
+<fieldset class="pad">
+  <legend>{{ i18n.t('signature.legende') }}</legend>
+  <div class="modes" role="radiogroup" [attr.aria-label]="i18n.t('signature.mode')">
+    <button type="button" role="radio" [attr.aria-checked]="mode() === 'dessin'" (click)="choisir('dessin')">{{ i18n.t('signature.dessiner') }}</button>
+    <button type="button" role="radio" [attr.aria-checked]="mode() === 'saisie'" (click)="choisir('saisie')">{{ i18n.t('signature.taper') }}</button>
+  </div>
+  @if (mode() === 'dessin') {
+    <p id="consigne-dessin">{{ i18n.t('signature.consigne') }}</p>
+    <canvas #toile width="600" height="180" role="img" [attr.aria-label]="i18n.t('signature.zone')" aria-describedby="consigne-dessin"
+            (pointerdown)="commencer($event)" (pointermove)="tracer($event)" (pointerup)="terminer()" (pointerleave)="terminer()"></canvas>
+    <button type="button" (click)="effacer()" [disabled]="!dessinee()">{{ i18n.t('signature.effacer') }}</button>
+  } @else {
+    <canvas #toile width="600" height="180" hidden></canvas>
+    <label for="nom-tape">{{ i18n.t('signature.nom') }}</label>
+    <input id="nom-tape" type="text" autocomplete="name" maxlength="200" [value]="nom()" (input)="saisir($any($event.target).value)" />
+  }
+</fieldset>

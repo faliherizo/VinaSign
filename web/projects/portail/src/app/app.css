@@ -1,0 +1,11 @@
+.evitement { position: absolute; left: -10000px; }
+.evitement:focus { position: static; display: inline-block; padding: .75rem; }
+.entete { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; justify-content: space-between; padding: 1rem; }
+.marque { font-weight: 700; margin: 0; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0 1rem; }
+nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .5rem; }
+nav a.actif { font-weight: 700; }
+main { padding: 1rem; }
+.outils { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+.personne { margin: 0; display: inline-flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+.outils button { min-height: 44px; min-width: 44px; padding: 0 1rem; }

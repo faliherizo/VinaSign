@@ -1,0 +1,60 @@
+<h1>{{ i18n.t('facturation.titre') }}</h1>
+@if (erreur()) {
+  <p class="erreur" role="alert">{{ i18n.t(erreur()) }}</p>
+}
+@if (situation(); as s) {
+  <section aria-labelledby="facturation-abonnement">
+    <h2 id="facturation-abonnement">{{ i18n.t('facturation.abonnement') }}</h2>
+    @if (s.plan) {
+      <dl class="abonnement">
+        <div><dt>{{ i18n.t('facturation.plan') }}</dt><dd>{{ libelle('plans', s.plan) }}</dd></div>
+        <div><dt>{{ i18n.t('facturation.etat') }}</dt><dd>{{ libelle('etats', s.etat) }}</dd></div>
+      </dl>
+      <button type="button" (click)="gerer()" [disabled]="envoi()">{{ i18n.t('facturation.gerer') }}</button>
+    } @else {
+      <p>{{ i18n.t('facturation.aucun') }}</p>
+    }
+  </section>
+  <section aria-labelledby="facturation-choisir">
+    <h2 id="facturation-choisir">{{ i18n.t('facturation.choisir') }}</h2>
+    <form class="choix" (submit)="$event.preventDefault(); payer()">
+      <vs-liste-referentiel type="plan" [(valeur)]="plan" [messageErreur]="i18n.t('facturation.erreur')" />
+      <button type="submit" [disabled]="envoi() || !plan()">{{ i18n.t('facturation.payer') }}</button>
+    </form>
+    <p class="aide">{{ i18n.t('facturation.aidePaiement') }}</p>
+  </section>
+  <section aria-labelledby="facturation-factures">
+    <h2 id="facturation-factures">{{ i18n.t('facturation.factures') }}</h2>
+    @if (s.factures.length === 0) {
+      <p>{{ i18n.t('facturation.aucuneFacture') }}</p>
+    } @else {
+      <div class="defilement" tabindex="0" role="region" [attr.aria-label]="i18n.t('facturation.factures')">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{{ i18n.t('facturation.numero') }}</th>
+              <th scope="col">{{ i18n.t('facturation.periode') }}</th>
+              <th scope="col">{{ i18n.t('facturation.montant') }}</th>
+              <th scope="col">{{ i18n.t('facturation.payeeLe') }}</th>
+              <th scope="col">{{ i18n.t('facturation.documents') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of s.factures; track f.numero) {
+              <tr>
+                <th scope="row">{{ f.numero }}</th>
+                <td>{{ date(f.debut) }} – {{ date(f.fin) }}</td>
+                <td>{{ montant(f) }}</td>
+                <td>{{ date(f.payeeLe) }}</td>
+                <td class="liens">
+                  @if (f.url) { <a [href]="f.url" rel="noopener noreferrer" target="_blank">{{ i18n.t('facturation.voir') }} {{ f.numero }}</a> }
+                  @if (f.pdf) { <a [href]="f.pdf" rel="noopener noreferrer" target="_blank">{{ i18n.t('facturation.pdf') }} {{ f.numero }}</a> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

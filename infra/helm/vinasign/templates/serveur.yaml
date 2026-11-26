@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vinasign-serveur
+  namespace: {{ .Release.Namespace }}
+  labels: { app.kubernetes.io/name: vinasign-serveur }
+spec:
+  replicas: {{ .Values.serveur.repliques }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: vinasign-serveur }
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vinasign-serveur
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: vinasign-serveur
+      automountServiceAccountToken: true
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, runAsGroup: 10001, fsGroup: 10001, seccompProfile: { type: RuntimeDefault } }
+      {{- include "vinasign.repartitionZones" "vinasign-serveur" | nindent 6 }}
+      containers:
+        - name: serveur
+          image: {{ include "vinasign.image" (dict "racine" . "nom" "serveur") | quote }}
+          imagePullPolicy: {{ .Values.image.politique }}
+          ports:
+            - { name: http, containerPort: {{ .Values.serveur.port }} }
+          env:
+            - { name: VINASIGN_PORT, value: {{ .Values.serveur.port | quote }} }
+            - { name: VINASIGN_CONVERSION_URL, value: "http://vinasign-conversion.{{ .Release.Namespace }}.svc.cluster.local" }
+            {{- range $nom, $valeur := .Values.serveur.environnement }}
+            - { name: {{ $nom }}, value: {{ $valeur | quote }} }
+            {{- end }}
+          envFrom:
+            - secretRef: { name: vinasign-serveur }
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: http }
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: http }
+            initialDelaySeconds: 60
+          securityContext:
+            {{- include "vinasign.securiteConteneur" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.serveur.ressources | nindent 12 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: coffre, mountPath: /mnt/coffre, readOnly: true }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - name: coffre
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes: { secretProviderClass: vinasign-coffre }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vinasign-serveur
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector: { app.kubernetes.io/name: vinasign-serveur }
+  ports:
+    - { name: http, port: 80, targetPort: http }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vinasign-serveur
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: vinasign-serveur }

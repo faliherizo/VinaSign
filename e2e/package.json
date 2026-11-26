@@ -1,0 +1,12 @@
+{
+  "name": "vinasign-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tests de bout en bout de VinaSign qui exigent un accès direct à la base (preuves de dynamisme, purge)",
+  "type": "module",
+  "scripts": { "test": "playwright test" },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "pg": "8.13.1"
+  }
+}

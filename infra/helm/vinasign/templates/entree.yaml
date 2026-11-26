@@ -1,0 +1,23 @@
+# Trois origines distinctes (dossier d'architecture § 2) : API, portail, signataire.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vinasign
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- toYaml .Values.entree.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ required "entree.classe est requise" .Values.entree.classe }}
+  rules:
+    - host: {{ required "entree.hotes.api est requis" .Values.entree.hotes.api }}
+      http:
+        paths:
+          - { path: /, pathType: Prefix, backend: { service: { name: vinasign-serveur, port: { name: http } } } }
+    - host: {{ required "entree.hotes.portail est requis" .Values.entree.hotes.portail }}
+      http:
+        paths:
+          - { path: /, pathType: Prefix, backend: { service: { name: vinasign-portail, port: { name: http } } } }
+    - host: {{ required "entree.hotes.signataire est requis" .Values.entree.hotes.signataire }}
+      http:
+        paths:
+          - { path: /, pathType: Prefix, backend: { service: { name: vinasign-signataire, port: { name: http } } } }

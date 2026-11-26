@@ -1,0 +1,53 @@
+{{- range $application := list "portail" "signataire" }}
+{{- $reglages := index $.Values.interfaces $application }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vinasign-{{ $application }}
+  namespace: {{ $.Release.Namespace }}
+  labels: { app.kubernetes.io/name: vinasign-{{ $application }} }
+spec:
+  replicas: {{ $.Values.interfaces.repliques }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: vinasign-{{ $application }} }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: vinasign-{{ $application }} }
+    spec:
+      automountServiceAccountToken: false
+      securityContext: { runAsNonRoot: true, runAsUser: 101, runAsGroup: 101, seccompProfile: { type: RuntimeDefault } }
+      {{- include "vinasign.repartitionZones" (printf "vinasign-%s" $application) | nindent 6 }}
+      containers:
+        - name: {{ $application }}
+          image: {{ include "vinasign.image" (dict "racine" $ "nom" $application) | quote }}
+          imagePullPolicy: {{ $.Values.image.politique }}
+          ports:
+            - { name: http, containerPort: {{ $.Values.interfaces.port }} }
+          env:
+            - { name: VINASIGN_API_URL, value: "http://vinasign-serveur.{{ $.Release.Namespace }}.svc.cluster.local" }
+            - { name: VINASIGN_ANCETRES_AUTORISES, value: {{ required (printf "interfaces.%s.ancetresAutorises est requis" $application) $reglages.ancetresAutorises | quote }} }
+            - { name: VINASIGN_FOURNISSEUR_IDENTITE, value: {{ $reglages.fournisseurIdentite | default "" | quote }} }
+          readinessProbe:
+            httpGet: { path: /, port: http }
+          securityContext:
+            {{- include "vinasign.securiteConteneur" $ | nindent 12 }}
+          resources:
+            {{- toYaml $.Values.interfaces.ressources | nindent 12 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: configuration-nginx, mountPath: /etc/nginx/conf.d }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - { name: configuration-nginx, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vinasign-{{ $application }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  selector: { app.kubernetes.io/name: vinasign-{{ $application }} }
+  ports:
+    - { name: http, port: 80, targetPort: http }
+{{- end }}

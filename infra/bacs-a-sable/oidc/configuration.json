@@ -1,0 +1,22 @@
+{
+  "interactiveLogin": true,
+  "httpServer": "NettyWrapper",
+  "tokenCallbacks": [
+    {
+      "issuerId": "portail",
+      "tokenExpiry": 300,
+      "requestMappings": [
+        {
+          "requestParam": "scope",
+          "match": "sans-mfa",
+          "claims": { "sub": "${clientId}", "email": "${clientId}", "email_verified": true, "amr": ["pwd"], "aud": ["api://vinasign-bdd"] }
+        },
+        {
+          "requestParam": "scope",
+          "match": "*",
+          "claims": { "sub": "${clientId}", "email": "${clientId}", "email_verified": true, "amr": ["pwd", "mfa"], "aud": ["api://vinasign-bdd"] }
+        }
+      ]
+    }
+  ]
+}

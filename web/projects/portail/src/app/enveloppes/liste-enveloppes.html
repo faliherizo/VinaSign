@@ -1,0 +1,31 @@
+<div class="titre">
+  <h1>{{ i18n.t('enveloppes.titre') }}</h1>
+  @if (session.aLeRole('preparateur')) {
+    <a class="action" routerLink="/enveloppes/nouvelle">{{ i18n.t('enveloppes.nouvelle') }}</a>
+  }
+</div>
+<vs-liste-referentiel type="statut-enveloppe" [(valeur)]="statut" [libelleVide]="i18n.t('enveloppes.tous')" [messageErreur]="i18n.t('enveloppes.erreur')" />
+@if (erreur()) {
+  <p class="erreur" role="alert">{{ i18n.t('enveloppes.erreur') }}</p>
+}
+<p class="compte" aria-live="polite">{{ elements().length }} {{ i18n.t('enveloppes.affichees') }}</p>
+@if (elements().length === 0 && !chargement() && !erreur()) {
+  <p>{{ i18n.t('enveloppes.aucune') }}</p>
+} @else {
+  <ul class="cartes">
+    @for (e of elements(); track e.id) {
+      <li>
+        <p class="reference"><a [routerLink]="['/enveloppes', e.id]">{{ e.referenceExterne }}</a></p>
+        <dl>
+          <div><dt>{{ i18n.t('enveloppes.statut') }}</dt><dd>{{ libelleStatut(e.statut) }}</dd></div>
+          <div><dt>{{ i18n.t('enveloppes.signatures') }}</dt><dd>{{ e.signes }} / {{ e.signataires }}</dd></div>
+          <div><dt>{{ i18n.t('enveloppes.creeeLe') }}</dt><dd>{{ date(e.creeLe) }}</dd></div>
+          <div><dt>{{ i18n.t('enveloppes.expireLe') }}</dt><dd>{{ date(e.expireLe) }}</dd></div>
+        </dl>
+      </li>
+    }
+  </ul>
+}
+@if (suivant()) {
+  <button type="button" (click)="plus()" [disabled]="chargement()">{{ i18n.t('enveloppes.plus') }}</button>
+}

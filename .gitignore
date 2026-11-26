@@ -1,0 +1,36 @@
+# Construction
+target/
+dist/
+.angular/
+node_modules/
+coverage/
+# Résultats de tests et rapports
+playwright-report/
+test-results/
+securite/resultats/
+perf/results/
+bdd/.features-gen/
+infra/bacs-a-sable/resultats/
+# Clés et états générés (jamais dans le dépôt)
+infra/bacs-a-sable/icp/etat/
+*.p12
+*.pfx
+*.key
+.env
+.env.*
+!.env.exemple
+# Postes
+.idea/
+.vscode/
+.DS_Store
+.claude/settings.local.json
+.gitnexus/
+# Journaux de plantage de la JVM : ils contiennent l environnement du processus
+hs_err_pid*.log
+replay_pid*.log
+# Terraform : fournisseurs téléchargés et états (jamais dans le dépôt ; le verrou .terraform.lock.hcl, lui, est versionné)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log

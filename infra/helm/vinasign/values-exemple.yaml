@@ -1,0 +1,20 @@
+# Exemple de valeurs d'un environnement : sert au lint et au rendu en CI. Aucune de ces valeurs n'est réelle.
+image:
+  registre: registre.exemple.test
+  etiquette: "0.1.0"
+serveur:
+  environnement:
+    VINASIGN_LANGUE_PRINCIPALE: fr
+    VINASIGN_DB_UTILISATEUR: vinasign_admin
+    VINASIGN_DB_ROLE_APPLICATIF: vinasign_application
+    VINASIGN_ORIGINES_AUTORISEES: https://portail.exemple.test,https://signer.exemple.test
+coffre:
+  nom: coffre-exemple
+  locataire: 00000000-0000-0000-0000-000000000000
+  identiteClientId: 00000000-0000-0000-0000-000000000000
+entree:
+  classe: webapprouting.kubernetes.azure.com
+  hotes:
+    api: api.exemple.test
+    portail: portail.exemple.test
+    signataire: signer.exemple.test

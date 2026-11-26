@@ -1,0 +1,10 @@
+{
+  "apiUrl": "",
+  "languePrincipale": "fr",
+  "referentielLangue": "langue",
+  "connexion": {
+    "emetteur": "http://localhost:28094/portail",
+    "client": "vinasign-portail",
+    "portees": "openid"
+  }
+}

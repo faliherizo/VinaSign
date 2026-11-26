@@ -1,0 +1,4 @@
+{ "conditions": [
+  "La passerelle de production (Front Door et WAF) applique la limitation de débit et le TLS ; ces tests visent le serveur.",
+  "Les secrets de production viennent de Key Vault ; aucun n'est dans le dépôt (vérifié par Trivy)."
+] }

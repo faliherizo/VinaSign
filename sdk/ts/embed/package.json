@@ -1,0 +1,14 @@
+{
+  "name": "@vinasign/embed",
+  "version": "0.1.0",
+  "description": "Intégration de la signature VinaSign dans une page (iframe, avis postMessage à origine stricte) — VS-055",
+  "type": "module",
+  "main": "src/index.ts",
+  "files": ["src"],
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "test": "node --test --experimental-test-coverage --test-coverage-lines=96 --test-coverage-branches=92 --test-coverage-include='src/**' 'test/**/*.test.ts'"
+  }
+}

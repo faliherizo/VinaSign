@@ -1,0 +1,23 @@
+{
+  "name": "@vinasign/client",
+  "version": "0.1.0",
+  "description": "Client Node de VinaSign (VS-093) : appels typés depuis le contrat OpenAPI v1, jeton private_key_jwt, attestations, webhooks.",
+  "type": "module",
+  "main": "src/index.ts",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "generer": "openapi-typescript ../../../serveur/contrat/openapi-v1.json -o src/genere/api.ts",
+    "verifier-types": "tsc --noEmit",
+    "test": "npm run generer && npm run verifier-types && node --test --experimental-test-coverage --test-coverage-lines=96 --test-coverage-branches=92 --test-coverage-include='src/*.ts' 'test/**/*.test.ts'"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.14.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.8.0",
+    "typescript": "5.8.3",
+    "@types/node": "22.15.30"
+  }
+}

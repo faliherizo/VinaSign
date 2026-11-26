@@ -1,0 +1,148 @@
+# Intégration continue de VinaSign (VS-002) : compile, teste, mesure et analyse à chaque PR et sur main.
+# Toute porte est bloquante : couverture par classe et agrégée (JaCoCo check), cliquet (aucune baisse), mutation (nuit),
+# Trivy (vulnérabilités HAUTES et CRITIQUES, secrets, configuration), SBOM publiée, Terraform et Helm valides.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'   # 1 h, heure de l'Est : mutation et Trivy complets
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  serveur:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21', cache: maven }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      # La SBOM CycloneDX est produite par le parent Spring Boot (META-INF/sbom), embarquée dans le jar.
+      - name: Tests, architecture, couverture par classe et agrégée, SBOM
+        working-directory: serveur
+        run: mvn -B verify
+      - name: Cliquet (aucune baisse de couverture)
+        run: node qualite/cliquet.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: serveur-rapports
+          path: |
+            serveur/target/site/jacoco/
+            serveur/target/classes/META-INF/sbom/application.cdx.json
+
+  mutation:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21', cache: maven }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Mutation (PIT, MSI ≥ 80 %)
+        working-directory: serveur
+        run: mvn -B -Pmutation verify
+      - name: Cliquet (couverture et MSI)
+        run: node qualite/cliquet.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: mutation, path: serveur/target/pit-reports/ }
+
+  outils-qualite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22.18' }
+      - run: node --test --experimental-test-coverage --test-coverage-lines=100 qualite/
+      - name: "@vinasign/embed (VS-055)"
+        run: npm test
+        working-directory: sdk/ts/embed
+      - name: "@vinasign/client (VS-093) — types générés depuis le contrat, couverture"
+        run: npm ci && npm test
+        working-directory: sdk/ts/client
+
+  interfaces:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run: { working-directory: web }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - name: Tests et couverture par fichier (commun, portail, signataire)
+        run: for p in commun portail signataire; do npx ng test "$p" --watch=false; done
+      - name: Constructions de production
+        run: npx ng build portail && npx ng build signataire
+      - name: SBOM des interfaces
+        run: npx --yes @cyclonedx/cyclonedx-npm@2 --omit dev --output-file dist/vinasign-web-sbom.json
+      - uses: actions/upload-artifact@v4
+        with: { name: web-sbom, path: web/dist/vinasign-web-sbom.json }
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy (dépendances, secrets, configuration Terraform et Helm)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-dirs: infra/bacs-a-sable,securite/resultats
+          trivyignores: securite/donnees/.trivyignore
+
+  infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: '1.12.0' }
+      - uses: azure/setup-helm@v4
+        with: { version: 'v3.18.0' }
+      - name: Terraform (format, validation, garde-fous simulés) et Helm (lint, rendu, durcissement)
+        run: infra/verifier.sh
+      - name: Frontal nginx dans l'image réelle (frame-ancestors par session intégrée, en-têtes, module PDF.js)
+        run: web/nginx/essai/verifier.sh
+
+  sdk-java:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: ['17', '21']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '${{ matrix.java }}', cache: maven }
+      - name: SDK Java (VS-092) — client généré depuis le contrat, autoconfiguration, couverture par classe
+        run: mvn -B -q verify
+        working-directory: sdk/java
+
+  sdk-dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - name: SDK .NET (VS-125) — client généré depuis le contrat, test de contrat, couverture
+        run: dotnet test
+        working-directory: sdk/dotnet/VinaSign.Client.Tests
+

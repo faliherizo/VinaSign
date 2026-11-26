@@ -1,0 +1,33 @@
+<a class="evitement" href="#contenu">{{ i18n.t('evitement') }}</a>
+<header class="entete">
+  <p class="marque">{{ i18n.t('titre') }}</p>
+  <div class="outils">
+    <vs-liste-referentiel [type]="configuration.referentielLangue" [valeur]="langues.langue()"
+                          (valeurChange)="langues.choisir($event)" [messageErreur]="i18n.t('langue.erreur')" />
+    @if (session.estOfferte) {
+      @if (session.utilisateur(); as u) {
+        <p class="personne">{{ u.nom }}</p>
+        <button type="button" (click)="session.deconnecter()">{{ i18n.t('connexion.deconnecter') }}</button>
+      } @else {
+        <button type="button" (click)="connecter()">{{ i18n.t('connexion.bouton') }}</button>
+      }
+    }
+  </div>
+</header>
+<nav [attr.aria-label]="i18n.t('nav.principale')">
+  <a routerLink="/" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">{{ i18n.t('nav.accueil') }}</a>
+  <a routerLink="/referentiels" routerLinkActive="actif" ariaCurrentWhenActive="page">{{ i18n.t('nav.referentiels') }}</a>
+  @if (session.aLeRole(roles.preparateur) || session.aLeRole(roles.auditeur)) {
+    <a routerLink="/enveloppes" routerLinkActive="actif" ariaCurrentWhenActive="page">{{ i18n.t('nav.enveloppes') }}</a>
+  }
+  @if (session.aLeRole(roles.administrateur)) {
+    <a routerLink="/facturation" routerLinkActive="actif" ariaCurrentWhenActive="page">{{ i18n.t('nav.facturation') }}</a>
+  }
+  <a routerLink="/etat" routerLinkActive="actif" ariaCurrentWhenActive="page">{{ i18n.t('nav.etat') }}</a>
+  @if (!session.utilisateur()) {
+    <a routerLink="/inscription" routerLinkActive="actif" ariaCurrentWhenActive="page">{{ i18n.t('nav.inscription') }}</a>
+  }
+</nav>
+<main id="contenu" tabindex="-1">
+  <router-outlet />
+</main>

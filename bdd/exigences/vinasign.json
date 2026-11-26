@@ -1,0 +1,702 @@
+{
+  "ordre": 1,
+  "appelOffres": "VinaSign — backlog produit",
+  "titre": "Plateforme de signature électronique opérée par Vina IT Solution",
+  "source": "docs/architecture/05-Backlog-et-stories.md",
+  "exigences": [
+    {
+      "id": "VS-R01",
+      "source": "CLAUDE.md, règle « tout est dynamique »",
+      "libelle": "Toute liste métier vient d'un référentiel administrable : aucune liste, aucun identifiant ni aucune option figés dans le code ou l'interface",
+      "caractere": "Obligatoire (règle de projet)",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-001",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'équipe, je veux le dépôt `vinasign` structuré par contexte (`domain/application/infrastructure`) afin de livrer des modules indépendants",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Règles de dépendance et découpage vérifiés à chaque construction.",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/ArchitectureTest.java"
+    },
+    {
+      "id": "VS-002",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'équipe, je veux une CI qui compile, teste, mesure et analyse",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Chaîne d'intégration continue : portes de couverture par classe et agrégée, domaine à 100 %, cliquet, mutation, Trivy, SBOM.",
+      "reference": ".github/workflows/ci.yml"
+    },
+    {
+      "id": "VS-003",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'exploitant, je veux des environnements reproductibles et des secrets externalisés",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "🟡",
+      "verification": "documentaire",
+      "justification": "Infrastructure en code éprouvée sans compte infonuagique (terraform test, lint et rendu Helm). Reste : plan réel.",
+      "reference": "infra/verifier.sh"
+    },
+    {
+      "id": "VS-004",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'exploitant, je veux des journaux structurés, des métriques et des traces",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Journal structuré et masqué, éprouvé sur l'application démarrée ; ArchUnit : seule l'infrastructure journalise.",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/commun/infrastructure/journal/JournalisationTest.java"
+    },
+    {
+      "id": "VS-005",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que client, je veux que la base isole les organisations",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "RLS éprouvée sur toutes les tables isolées, dont l'absence de toute ligne sans contexte.",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/commun/infrastructure/base/IsolationOrganisationTest.java"
+    },
+    {
+      "id": "VS-010",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'administrateur de la plateforme, je veux créer, suspendre et réactiver une organisation",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-011",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'administrateur d'organisation, je veux enregistrer une application cliente (environnement, JWKS, scopes, origines d'intégration)",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-012",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux obtenir un jeton par client credentials (`private_key_jwt`)",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-013",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'administrateur d'organisation, je veux révoquer ou faire tourner les clés d'une application",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-014",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'administrateur d'organisation, je veux gérer les utilisateurs du portail (OIDC, rôles)",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-015",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'exploitant, je veux limiter le débit et appliquer des quotas par application",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "429 avec Retry-After au-delà du plan, métriques par application : éprouvé sur la vraie pile (le serveur de la campagne BDD relève le débit par adresse).",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/organisation/DebitApiTest.java"
+    },
+    {
+      "id": "VS-020",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux créer une enveloppe avec une référence externe et une clé d'idempotence",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-021",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux déposer un PDF par une URL présignée",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-022",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que système, je veux des versions immuables (original, préparé, final), chacune avec son SHA-256",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-023",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que préparateur, je veux définir les signataires, leur ordre (séquentiel ou parallèle), leur langue et leur type (invité ou utilisateur de l'application)",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-024",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que système, je veux contrôler les transitions de l'enveloppe et des signataires",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-025",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que préparateur, je veux annuler une enveloppe ; en tant que système, l'expirer à échéance",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-030",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'équipe, je veux des tests de caractérisation du moteur du CLM avant de le porter",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "🟡",
+      "verification": "a-realiser",
+      "justification": "Suite de caractérisation écrite (pyHanko, openssl, veraPDF) ; exécution en attente : mvn -Pcaracterisation test."
+    },
+    {
+      "id": "VS-031",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que système, je veux signer avec une clé du HSM (port `CleDeSignature`)",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Contrat CleDeSignature exécuté contre PKCS#12 et Key Vault (émulateur Lowkey Vault, vrai SDK) ; clé exportable et PKCS#12 en production refusés.",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/signature/cle/"
+    },
+    {
+      "id": "VS-032",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'organisation, je veux que le PDF final porte mon cachet PAdES-B-LTA",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 4. Critères : Porté de `CachetX509` ; pyHanko : « VALID », niveau LTA ; un certificat renouvelé reste reconnu Origine : CLM."
+    },
+    {
+      "id": "VS-033",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que système, je veux horodater par RFC 3161 avec une autorité de repli",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Bascule entre autorités d'horodatage et refus d'un jeton d'un autre document.",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/signature/infrastructure/pades/AutoritesHorodatageTest.java"
+    },
+    {
+      "id": "VS-034",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux faire signer une empreinte sans transmettre le document",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-035",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que système, je veux produire un PDF/A et convertir les formats bureautiques",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Document Word converti par Gotenberg en PDF/A-2b jugé conforme par veraPDF (conteneurs réels) ; service sans accès réseau sortant (chart Helm).",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/enveloppe/infrastructure/controle/ControlesDocumentsTest.java"
+    },
+    {
+      "id": "VS-036",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que tiers, je veux vérifier un document signé ou une empreinte",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-040",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'invité, je veux ouvrir un lien sécurisé sans compte",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-041",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux accepter un consentement explicite",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-042",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire au niveau renforcé, je veux recevoir un code par courriel ou SMS",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-043",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire récurrent, je veux signer avec une clé d'accès (WebAuthn)",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 8. Critères : Enregistrement et usage ; `amr=hwk` attesté ; repli sur le code Origine : N."
+    },
+    {
+      "id": "VS-044",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux attester mon utilisateur déjà authentifié",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 6. Critères : Assertion signée par la clé de l'application ; `sub` lié au signataire ; `amr` récent exigé au niveau renforcé ; refus sinon Origine : N."
+    },
+    {
+      "id": "VS-045",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux refuser de signer, avec un motif facultatif",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 8. Critères : Refus distinct d'une signature ; enveloppe `DECLINED` ; webhook `signer.declined` Origine : D1 US-055."
+    },
+    {
+      "id": "VS-046",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux une session intégrée éphémère pour un signataire",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-050",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux lire le document sur téléphone ou tablette",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 6. Critères : PDF.js ; ajustement à la largeur ; zoom par pincement ; affichage progressif Origine : D1 US-051."
+    },
+    {
+      "id": "VS-051",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux dessiner ma signature au doigt ou au stylet, l'effacer et recommencer",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 6. Critères : Pointer Events ; alternative clavier (nom tapé) ; aucune biométrie conservée au-delà de l'image Origine : D1 US-036."
+    },
+    {
+      "id": "VS-052",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux remplir les champs qui me sont assignés",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 6. Critères : Texte, date, initiales, case ; champs obligatoires bloquants, avec un message qui dit quoi corriger Origine : D1 US-053."
+    },
+    {
+      "id": "VS-053",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux une interface accessible",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 6. Critères : SGQRI 008 3.0 et WCAG 2.2 AA ; axe-core dans chaque état ; quatre largeurs ; cibles ≥ 44 px ; aucune superposition Origine : N."
+    },
+    {
+      "id": "VS-054",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux l'interface en français ou en anglais",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 6. Critères : Langue de l'invitation ; bascule ; aucune chaîne en dur Origine : D1 Q2."
+    },
+    {
+      "id": "VS-055",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux intégrer la signature dans ma page (`@vinasign/embed`)",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 6. Critères : Iframe ; `frame-ancestors` limité aux origines déclarées ; `postMessage` typé avec origine exacte ; événements `signed`, `declined`, `closed` Origine : D2 E15-08."
+    },
+    {
+      "id": "VS-070",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que système, je veux finaliser le document de façon idempotente",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 7. Critères : Empreinte préparée revérifiée ; PDF final immuable ; `COMPLETED` posé seulement après succès ; une reprise ne produit pas de double signature Origine : D1 US-060..062."
+    },
+    {
+      "id": "VS-071",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'auditeur, je veux un journal de preuve inaltérable",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 7. Critères : Chaîne d'empreintes (portée de `ChaineScellee`), ancrage horodaté toutes les heures, stockage immuable ; une altération est détectée Origine : CLM."
+    },
+    {
+      "id": "VS-072",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'expéditeur, je veux un certificat de réalisation",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 7. Critères : PDF/A, scellé ; chronologie, niveaux, empreintes Origine : CLM."
+    },
+    {
+      "id": "VS-073",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'auditeur, je veux exporter le dossier de preuve",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 7. Critères : ZIP signé ; vérifiable hors VinaSign ; accès journalisé Origine : CLM."
+    },
+    {
+      "id": "VS-080",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux recevoir l'invitation et la confirmation par courriel",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "bdd"
+    },
+    {
+      "id": "VS-081",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux recevoir mon code par SMS",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Téléphone chiffré (AES-GCM), code par SMS via la boîte d'envoi et le simulateur ; simulateur refusé en production.",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/session/SessionApiTest.java"
+    },
+    {
+      "id": "VS-082",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'expéditeur, je veux des relances et une échéance",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "✅",
+      "verification": "documentaire",
+      "justification": "Relance après la fréquence, lien réémis (ancien révoqué), arrêt au maximum (plafond 10) ; aucun courriel pour une enveloppe annulée.",
+      "reference": "serveur/src/test/java/ca/vinaitsolution/vinasign/session/SessionApiTest.java"
+    },
+    {
+      "id": "VS-090",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'intégrateur, je veux un contrat OpenAPI v1 et des erreurs RFC 9457",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 7. Critères : Publié ; tests de contrat dans la CI ; erreurs typées Origine : D2 E15-01."
+    },
+    {
+      "id": "VS-091",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'application cliente, je veux des webhooks signés et fiables",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 7. Critères : HMAC avec horodatage ; reprise avec délai croissant pendant 72 h ; journal des livraisons ; anti-SSRF ; idempotence côté client documentée Origine : CLM, D2 E15-06."
+    },
+    {
+      "id": "VS-092",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que développeur Java, je veux un SDK et un module d'autoconfiguration Spring Boot",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 8. Critères : Java 17 et 21 ; client généré ; vérification des webhooks ; aide à l'empreinte (canonicalisation, PDF externe avec PDFBox) Origine : D2 E15-10."
+    },
+    {
+      "id": "VS-093",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que développeur TypeScript, je veux `@vinasign/client` et `@vinasign/embed`",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 8. Critères : Node 20 et plus ; navigateur sans dépendance ; exemples React et Angular Origine : D2 E15-09."
+    },
+    {
+      "id": "VS-094",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'utilisateur d'un assistant d'IA, je veux consulter l'état de mes enveloppes par MCP",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 8. Critères : Porté de `ServeurMcp` ; lecture seule ; validé par le client de référence Origine : CLM."
+    },
+    {
+      "id": "VS-095",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'intégrateur, je veux un bac à sable",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 8. Critères : Certificats de test ; courriels capturés ; données réinitialisables Origine : D2 E15-12."
+    },
+    {
+      "id": "VS-100",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que professionnel du SAD, je veux signer et faire cosigner ma note par VinaSign",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 9. Critères : US-408 de bout en bout : empreinte, assertion avec TOTP, cosignature ordonnée, CMS conservé avec la note, BDD du SAD au vert Origine : N."
+    },
+    {
+      "id": "VS-101",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'usager de Télésoin, je veux signer mon consentement sur la tablette",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 9. Critères : Session intégrée ; représentant légal ; preuve rattachée à l'historique du consentement Origine : N."
+    },
+    {
+      "id": "VS-102",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'administrateur du contrat, je veux basculer une organisation du CLM sur VinaSign",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 10. Critères : Adaptateurs derrière les ports existants ; paramètre par organisation ; suite de caractérisation au vert pour les deux implémentations ; IQ exclu par défaut Origine : CLM."
+    },
+    {
+      "id": "VS-103",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'auditeur, je veux que les preuves CLM antérieures restent vérifiables",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 10. Critères : Le certificat historique est reconnu ; vérification publique positive ; aucun document réémis Origine : CLM."
+    },
+    {
+      "id": "VS-110",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'équipe, je veux un modèle de menace revu",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 8. Critères : STRIDE ([03](03-Securite-et-conformite.md)) relu par un pair ; chaque menace associée à un test Origine : N."
+    },
+    {
+      "id": "VS-111",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'équipe, je veux les tests d'intrusion automatisés sur tout l'inventaire",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 9. Critères : `securite/` du contrat porté (INT-01 à INT-10), plus le rejeu de lien, d'assertion et de webhook ; ZAP et Trivy chaque nuit, bloquants Origine : CLM."
+    },
+    {
+      "id": "VS-112",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que responsable de la protection des renseignements, je veux l'EFVP et le registre",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 9. Critères : EFVP signée ; résidence au Canada ; sous-traitants listés ; durées de conservation Origine : N."
+    },
+    {
+      "id": "VS-113",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'exploitant, je veux un PRA éprouvé",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 10. Critères : Restauration à partir d'une sauvegarde et bascule vers Canada East mesurées (RPO 15 min, RTO 4 h) Origine : D1 § 7.3."
+    },
+    {
+      "id": "VS-114",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que direction, je veux un test d'intrusion indépendant avant le pilote",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 10. Critères : Mandat attribué ; constats élevés corrigés ou faisant l'objet d'une décision de risque formelle Origine : D1 § 15.4."
+    },
+    {
+      "id": "VS-115",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que direction, je veux l'avis juridique sur les niveaux et le mode empreinte",
+      "caractere": "Must — pilote interne",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 10. Critères : Avis écrit (LCCJTI, C.c.Q., renseignements de santé) ; terminologie de l'offre validée Origine : D1 § 10.4."
+    },
+    {
+      "id": "VS-060",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que préparateur, je veux placer, déplacer et redimensionner les champs au doigt",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 11. Critères : Coordonnées normalisées et versionnées ; aucune dérive au zoom ni à la rotation ; gestes de page et de champ distincts Origine : D1 US-030..035."
+    },
+    {
+      "id": "VS-061",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que préparateur, je veux annuler et rétablir",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 11. Critères : Historique de 50 actions Origine : D1 US-034."
+    },
+    {
+      "id": "VS-062",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que préparateur, je veux des modèles d'enveloppe",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 12. Critères : Champs et rôles réutilisables ; versionnés Origine : D1 US-103."
+    },
+    {
+      "id": "VS-063",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'intégrateur, je veux placer les champs par ancres textuelles",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 12. Critères : `{{signature:1}}` dans le PDF ; position calculée ; erreur claire si l'ancre est absente Origine : N."
+    },
+    {
+      "id": "VS-064",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que préparateur, je veux envoyer depuis le portail, sans application cliente",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 12. Critères : Parcours complet sur téléphone, tablette et ordinateur ; e2e aux quatre largeurs Origine : D1 § 4.1."
+    },
+    {
+      "id": "VS-120",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'organisation, je veux suivre ma consommation",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 13. Critères : Règle d'enveloppe portée du CLM (comptée une fois, au premier envoi) ; rapport mensuel ; export Origine : CLM."
+    },
+    {
+      "id": "VS-121",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'organisation, je veux souscrire et payer un plan",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 14. Critères : Page de paiement hébergée par le prestataire ; aucun numéro de carte chez VinaSign (garde portée de l'ADR-022) ; factures Origine : D1 E14."
+    },
+    {
+      "id": "VS-122",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que prospect, je veux créer mon organisation en libre-service",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 14. Critères : Vérification du domaine ; bac à sable immédiat ; production après vérification de l'organisation Origine : N."
+    },
+    {
+      "id": "VS-123",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'organisation, je veux personnaliser la marque",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 13. Critères : Logo, couleurs, sous-domaine ; contraste vérifié par calcul Origine : D1 V1."
+    },
+    {
+      "id": "VS-124",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que client, je veux une page d'état et des SLO publiés",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 13. Critères : Sondes synthétiques ; historique des incidents Origine : N."
+    },
+    {
+      "id": "VS-125",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que développeur .NET, je veux un SDK",
+      "caractere": "Should — V1 commerciale",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Sprint 15. Critères : .NET 8 ; tests de contrat Origine : D2 E15-11."
+    },
+    {
+      "id": "VS-130",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que signataire, je veux une signature avancée avec un certificat personnel",
+      "caractere": "Could — V2",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Critères : Certificat émis à la volée par l'autorité partenaire après vérification d'identité ; PAdES personnelle"
+    },
+    {
+      "id": "VS-131",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant qu'organisation, je veux exiger une vérification d'identité",
+      "caractere": "Could — V2",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Critères : Port `VerificationIdentite` ; fournisseur à choisir ; résultat attesté dans la preuve"
+    },
+    {
+      "id": "VS-132",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que système, je veux renouveler la validité à long terme",
+      "caractere": "Could — V2",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Critères : Horodatage d'archive avant l'expiration de la chaîne ; tâche planifiée ; alerte"
+    },
+    {
+      "id": "VS-133",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que client entreprise, je veux apporter ma propre clé",
+      "caractere": "Could — V2",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Critères : Clé de données de l'organisation dans son Key Vault ; révocation = données illisibles"
+    },
+    {
+      "id": "VS-134",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que client entreprise, je veux une instance dédiée",
+      "caractere": "Could — V2",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Critères : Même code ; déploiement isolé par Terraform ; procédure de mise à jour"
+    },
+    {
+      "id": "VS-135",
+      "source": "docs/architecture/05-Backlog-et-stories.md",
+      "libelle": "En tant que direction, je veux SOC 2 Type II puis ISO 27001",
+      "caractere": "Could — V2",
+      "conformiteDeclaree": "⏳",
+      "verification": "a-realiser",
+      "justification": "Critères : Période d'observation ; audit externe"
+    }
+  ]
+}

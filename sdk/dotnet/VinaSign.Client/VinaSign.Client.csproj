@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- SDK .NET de VinaSign (VS-125) : appels générés depuis le contrat OpenAPI v1 (NSwag, à la construction), jeton
+       private_key_jwt, attestations, vérification des webhooks. Aucune règle de sécurité ni liste métier. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>VinaSign.Client</RootNamespace>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS8618;CS8603;CS8604;CS8625;CS0114;CS1591;CS8765</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NSwag.MSBuild" Version="14.4.0" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <Target Name="GenererClient" BeforeTargets="BeforeBuild" Inputs="../../../serveur/contrat/openapi-v1.json" Outputs="Genere/VinaSignApi.g.cs">
+    <Exec Command="$(NSwagExe_Net80) openapi2csclient /input:../../../serveur/contrat/openapi-v1.json /output:Genere/VinaSignApi.g.cs /namespace:VinaSign.Client.Genere /className:VinaSignApi /generateClientInterfaces:true /operationGenerationMode:SingleClientFromOperationId /useBaseUrl:false /generateOptionalParameters:true" />
+  </Target>
+  <ItemGroup>
+    <Compile Remove="Genere/**" />
+    <Compile Include="Genere/VinaSignApi.g.cs" />
+  </ItemGroup>
+</Project>

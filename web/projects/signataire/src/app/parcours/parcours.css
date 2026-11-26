@@ -1,0 +1,24 @@
+:host { --marque: #1f4e79; display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
+section { min-width: 0; }
+h2 { font-size: 1.25rem; margin: 0 0 0.75rem; }
+.texte-consentement { white-space: pre-line; border: 1px solid #767676; border-radius: 0.375rem; padding: 1rem; max-height: 50vh; overflow-y: auto;
+  margin-bottom: 1rem; }
+.case { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+.case input { width: 28px; height: 28px; margin: 8px; flex-shrink: 0; }
+.boutons { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+button { min-height: 44px; min-width: 44px; padding: 0.5rem 1.25rem; font: inherit; border-radius: 0.375rem; border: 1px solid var(--marque);
+  background: #fff; color: var(--marque); cursor: pointer; }
+button.principal { background: var(--marque); color: #fff; }
+button.danger { background: #a4001d; border-color: #a4001d; color: #fff; }
+button:disabled { background: #f2f2f2; color: #595959; border-color: #767676; cursor: not-allowed; }
+button:focus-visible, input:focus-visible { outline: 3px solid #b35900; outline-offset: 2px; }
+.bandeau { border-left: 6px solid var(--marque); background: #eef3f8; padding: 1rem; }
+.bandeau.erreur { border-color: #a4001d; background: #fdf0f2; }
+.bandeau.succes { border-color: #1e6b34; background: #eef7f0; }
+.message { min-height: 1.5em; margin: 0.5rem 0; color: #a4001d; }
+@media (min-width: 1200px) {
+  :host:has(.lecture) { display: grid; grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr); align-items: start; }
+}
+.marque { display: flex; align-items: center; gap: 0.75rem; min-width: 0; font-weight: 600; border-bottom: 4px solid var(--marque); padding-bottom: 0.5rem; }
+.marque img { height: 40px; width: auto; max-width: 160px; object-fit: contain; flex-shrink: 0; }
+.marque span { overflow-wrap: anywhere; }

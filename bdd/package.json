@@ -1,0 +1,20 @@
+{
+  "name": "vinasign-bdd",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Scénarios BDD (Gherkin français) des exigences et stories de VinaSign, exécutés de bout en bout, documentation générée",
+  "type": "module",
+  "scripts": {
+    "generer": "bddgen",
+    "test": "bddgen && playwright test; node outils/documenter.mjs",
+    "documenter": "node outils/documenter.mjs",
+    "couverture": "node outils/documenter.mjs --verifier"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.61.1",
+    "@types/pg": "^8.11.10",
+    "pg": "^8.13.1",
+    "playwright-bdd": "9.2.1"
+  }
+}

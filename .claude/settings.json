@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn *)",
+      "Bash(npm test*)",
+      "Bash(npm run *)",
+      "Bash(npx playwright test*)",
+      "Bash(npx bddgen*)",
+      "Bash(./ci.sh*)",
+      "Bash(docker compose *)",
+      "Bash(gitnexus *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Read(./.env)",
+      "Read(./infra/bacs-a-sable/icp/etat/**)"
+    ]
+  }
+}

@@ -1,0 +1,213 @@
+# Tous les réglages viennent de l'environnement ; aucun hôte, origine ni secret n'est écrit ici.
+server:
+  port: ${VINASIGN_PORT:8300}
+  # Derrière Front Door et l'entrée du cluster : « framework » pour lire l'adresse du client dans X-Forwarded-For.
+  forward-headers-strategy: ${VINASIGN_EN_TETES_RELAIS:none}
+  error:
+    include-stacktrace: never
+    include-message: never
+
+spring:
+  application:
+    name: vinasign
+  # La base vient de VINASIGN_DB_URL / _UTILISATEUR / _MDP en environnement partagé ;
+  # sur un poste, spring-boot-docker-compose branche celle de infra/docker-compose.dev.yml.
+  datasource:
+    url: ${VINASIGN_DB_URL:}
+    username: ${VINASIGN_DB_UTILISATEUR:}
+    password: ${VINASIGN_DB_MDP:}
+  docker:
+    compose:
+      file: ../infra/docker-compose.dev.yml
+      arguments: ["--env-file", "../.env"]
+      lifecycle-management: start-only
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    parameters:
+      roleApplicatif: ${vinasign.base.role-applicatif}
+  jackson:
+    default-property-inclusion: non_null
+  # Relais SMTP (VS-080) : Mailpit sur un poste (infra/docker-compose.dev.yml), relais de l'organisation en exploitation.
+  mail:
+    host: ${VINASIGN_SMTP_HOTE:localhost}
+    port: ${VINASIGN_SMTP_PORT:21025}
+    username: ${VINASIGN_SMTP_UTILISATEUR:}
+    password: ${VINASIGN_SMTP_MDP:}
+
+vinasign:
+  base:
+    role-applicatif: ${VINASIGN_DB_ROLE_APPLICATIF:vinasign_application}
+    mot-de-passe-applicatif: ${VINASIGN_DB_MDP_APPLICATIF:}
+  jetons:
+    emetteur: ${VINASIGN_JETONS_EMETTEUR:}
+    audience: ${VINASIGN_JETONS_AUDIENCE:}
+    duree: ${VINASIGN_JETONS_DUREE:PT5M}
+    duree-max-assertion: ${VINASIGN_JETONS_DUREE_MAX_ASSERTION:PT5M}
+    cle-privee-pem: ${VINASIGN_JETONS_CLE_PRIVEE:}
+    cle-ephemere-autorisee: ${VINASIGN_JETONS_CLE_EPHEMERE:false}
+    purge-assertions: ${VINASIGN_JETONS_PURGE_ASSERTIONS:PT10M}
+  # Fournisseur d'identité OIDC du portail (VS-014) ; sans émetteur, seul l'accès des applications clientes est ouvert.
+  portail:
+    emetteur: ${VINASIGN_PORTAIL_EMETTEUR:}
+    jwk-set-uri: ${VINASIGN_PORTAIL_JWKS:}
+    audience: ${VINASIGN_PORTAIL_AUDIENCE:}
+    methodes-multifacteur: ${VINASIGN_PORTAIL_AMR_MFA:mfa,hwk,otp,sms}
+  # Limitation du débit (VS-015) : le débit des organisations vient de leur plan (référentiel plan) ; celui-ci vaut pour
+  # une adresse sans authentification (point de jeton, routes publiques).
+  debit:
+    anonyme-par-minute: ${VINASIGN_DEBIT_ANONYME:120}
+  # Enveloppes et documents (VS-020 à VS-025).
+  enveloppes:
+    url-publique: ${VINASIGN_URL_PUBLIQUE:http://localhost:${VINASIGN_PORT:8300}}
+    validite-depot: ${VINASIGN_DEPOT_VALIDITE:PT5M}
+    taille-max: ${VINASIGN_DOCUMENT_TAILLE_MAX:26214400}
+    stockage:
+      connexion: ${VINASIGN_STOCKAGE_CONNEXION:}
+      point-de-terminaison: ${VINASIGN_STOCKAGE_POINT:}
+      conteneur: ${VINASIGN_STOCKAGE_CONTENEUR:documents}
+      creer-conteneur: ${VINASIGN_STOCKAGE_CREER_CONTENEUR:false}
+    antivirus:
+      hote: ${VINASIGN_ANTIVIRUS_HOTE:localhost}
+      port: ${VINASIGN_ANTIVIRUS_PORT:23310}
+      delai: ${VINASIGN_ANTIVIRUS_DELAI:PT30S}
+    expiration:
+      lot: ${VINASIGN_EXPIRATION_LOT:200}
+    # Finalisation des enveloppes entièrement signées (VS-070) : scellement, version finale, complétion.
+    finalisation:
+      lot: ${VINASIGN_FINALISATION_LOT:50}
+      intervalle: ${VINASIGN_FINALISATION_INTERVALLE:PT15S}
+    conversion:
+      url: ${VINASIGN_CONVERSION_URL:http://localhost:28030}
+      delai: ${VINASIGN_CONVERSION_DELAI:PT2M}
+  # Clé de cachet (VS-031) : key-vault en exploitation ; pkcs12 sur un poste ou un bac à sable, refusé en production.
+  cachet:
+    environnement: ${VINASIGN_ENVIRONNEMENT:poste}
+    fournisseur: ${VINASIGN_CACHET_FOURNISSEUR:}
+    cle-key-vault: ${VINASIGN_CACHET_CLE:}
+    chaine-pem: ${VINASIGN_CACHET_CHAINE:}
+    magasin: ${VINASIGN_CACHET_MAGASIN:}
+    mot-de-passe: ${VINASIGN_CACHET_MOT_DE_PASSE:}
+    url-horodatage: ${VINASIGN_HORODATAGE_URL:}
+  # Parcours du signataire (VS-040) : lien borné par l'échéance de l'enveloppe, session courte, ouvertures limitées.
+  # Webhooks (VS-091) : livraison régulière, délai par destination ; hôtes admis malgré la garde anti-SSRF (bacs à sable
+  # seulement, liste vide en production, ex. localhost:28777).
+  webhooks:
+    intervalle: ${VINASIGN_WEBHOOKS_INTERVALLE:PT10S}
+    lot: ${VINASIGN_WEBHOOKS_LOT:100}
+    delai: ${VINASIGN_WEBHOOKS_DELAI:PT10S}
+    autorises: ${VINASIGN_WEBHOOKS_AUTORISES:}
+  # Paiement d'un plan (VS-121) : « aucun » ou « stripe » (page de paiement hébergée ; aucun numéro de carte chez VinaSign).
+  # Clés par le coffre ; prix Stripe par plan : VINASIGN_PAIEMENT_PRIX_<PLAN>=price_… (ex. vinasign.paiement.prix.essentiel).
+  paiement:
+    prestataire: ${VINASIGN_PAIEMENT_PRESTATAIRE:aucun}
+    url-api: ${VINASIGN_PAIEMENT_URL_API:https://api.stripe.com}
+    cle-secrete: ${VINASIGN_PAIEMENT_CLE:}
+    secret-webhook: ${VINASIGN_PAIEMENT_SECRET_WEBHOOK:}
+    url-retour: ${VINASIGN_PAIEMENT_URL_RETOUR:http://localhost:4300/facturation}
+  # Inscription en libre-service (VS-122) : fermee, bac-a-sable (courriel confirmé suffit) ou production (domaine prouvé par
+  # un enregistrement TXT, puis validation) ; serveur DNS interrogé (dns://hôte:port, vide : celui du système).
+  inscription:
+    mode: ${VINASIGN_INSCRIPTION_MODE:fermee}
+    dns: ${VINASIGN_INSCRIPTION_DNS:}
+    duree-lien: ${VINASIGN_INSCRIPTION_DUREE_LIEN:PT24H}
+    url-confirmation: ${VINASIGN_INSCRIPTION_URL:http://localhost:4300/inscription}
+  # Validité à long terme (VS-132) : renouvellement de l'horodatage d'archive avant l'échéance du certificat de l'autorité.
+  archivage:
+    intervalle: ${VINASIGN_ARCHIVAGE_INTERVALLE:PT6H}
+    marge: ${VINASIGN_ARCHIVAGE_MARGE:P90D}
+    lot: ${VINASIGN_ARCHIVAGE_LOT:50}
+  # Journal de preuve (VS-071) : ancrage horaire, fenêtre arrêtée une marge avant maintenant (transactions en cours).
+  preuve:
+    ancrage:
+      intervalle: ${VINASIGN_ANCRAGE_INTERVALLE:PT1H}
+      marge: ${VINASIGN_ANCRAGE_MARGE:PT1M}
+  session:
+    duree-lien: ${VINASIGN_LIEN_DUREE:P30D}
+    duree-session: ${VINASIGN_SESSION_DUREE:PT30M}
+    ouvertures-max: ${VINASIGN_LIEN_OUVERTURES_MAX:50}
+    duree-code: ${VINASIGN_CODE_DUREE:PT10M}
+    duree-integree: ${VINASIGN_SESSION_INTEGREE_DUREE:PT5M}
+    url-signataire: ${VINASIGN_SIGNATAIRE_URL:http://localhost:4301}
+    # Relances (VS-082) : fréquence depuis le dernier envoi, nombre maximal (plafonné à 10 par le domaine).
+    frequence-relance: ${VINASIGN_RELANCE_FREQUENCE:P2D}
+    relances-max: ${VINASIGN_RELANCES_MAX:3}
+    intervalle-relances: ${VINASIGN_RELANCES_INTERVALLE:PT1H}
+    # Clés d'accès (WebAuthn, VS-043) : identifiant de partie de confiance (domaine de l'interface du signataire), origine
+    # attendue, niveau accordé par une clé d'accès.
+    cles-acces:
+      rp-id: ${VINASIGN_WEBAUTHN_RP_ID:localhost}
+      origine: ${VINASIGN_SIGNATAIRE_URL:http://localhost:4301}
+      niveau: ${VINASIGN_WEBAUTHN_NIVEAU:renforce}
+    # Vérification d'identité (VS-131) : « aucun » ou « generique » (adresse https://…{reference}…{langue}, secret HMAC
+    # partagé de 32 caractères au moins, par le coffre) ; niveau accordé quand elle réussit.
+    verification-identite:
+      fournisseur: ${VINASIGN_IDV_FOURNISSEUR:aucun}
+      url: ${VINASIGN_IDV_URL:}
+      secret: ${VINASIGN_IDV_SECRET:}
+      niveau: ${VINASIGN_IDV_NIVEAU:identite-verifiee}
+    # Clé HMAC des codes à usage unique (256 bits, base64) : coffre de secrets ; aucune valeur par défaut.
+    cle-codes: ${VINASIGN_CLE_CODES:}
+    # Attestation de l'utilisateur de l'application (VS-044, VS-ADR-007) : niveau accordé sans demande (code du
+    # référentiel niveau-authentification), rang à partir duquel une seconde preuve récente est exigée, méthodes amr
+    # reconnues comme seconde preuve et leur âge maximal.
+    attestation:
+      niveau-par-defaut: ${VINASIGN_ATTESTATION_NIVEAU_DEFAUT:simple}
+      rang-renforce: ${VINASIGN_ATTESTATION_RANG_RENFORCE:2}
+      methodes-fortes: ${VINASIGN_ATTESTATION_METHODES_FORTES:otp,hwk,mfa}
+      fraicheur: ${VINASIGN_ATTESTATION_FRAICHEUR:PT5M}
+  # Courriels (VS-080) : boîte d'envoi expédiée régulièrement, reprise avec délai croissant, abandon au plafond.
+  notification:
+    url-signataire: ${VINASIGN_SIGNATAIRE_URL:http://localhost:4301}
+    expediteur: ${VINASIGN_EXPEDITEUR:ne-pas-repondre@vinasign.ca}
+    lot: ${VINASIGN_COURRIELS_LOT:50}
+    tentatives-max: ${VINASIGN_COURRIELS_TENTATIVES:8}
+    intervalle: ${VINASIGN_COURRIELS_INTERVALLE:PT30S}
+    fournisseur-sms: ${VINASIGN_SMS_FOURNISSEUR:}
+    environnement: ${VINASIGN_ENVIRONNEMENT:poste}
+  # Chiffrement des champs sensibles (téléphone) : clé de 256 bits en base64, coffre de secrets ; aucune valeur par défaut.
+  chiffrement:
+    cle: ${VINASIGN_CLE_CHIFFREMENT:}
+  langue-principale: ${VINASIGN_LANGUE_PRINCIPALE:fr}
+  # Environnement de déploiement (poste, integration, preproduction, production, bac-a-sable) : décide des facultés propres
+  # au bac à sable (réinitialisation, VS-095).
+  environnement: ${VINASIGN_ENVIRONNEMENT:poste}
+  # Fuseau des relevés de consommation (mois de facturation, VS-120).
+  fuseau: ${VINASIGN_FUSEAU:America/Toronto}
+  origines-autorisees: ${VINASIGN_ORIGINES_AUTORISEES:}
+
+# Journal structuré, masqué (VS-004) : aucun courriel, téléphone, jeton ni secret n'atteint la sortie.
+logging:
+  structured:
+    format:
+      console: ca.vinaitsolution.vinasign.commun.infrastructure.journal.FormatJournal
+
+# Traces et métriques OpenTelemetry (VS-004). Les adresses des collecteurs viennent de l'environnement :
+# MANAGEMENT_OTLP_TRACING_ENDPOINT et MANAGEMENT_OTLP_METRICS_EXPORT_URL ; sans elles, rien n'est exporté.
+management:
+  # Un relais de courriel indisponible ne rend pas l'API malade : la boîte d'envoi reprend les envois (VS-080).
+  health:
+    mail:
+      enabled: false
+  tracing:
+    enabled: ${VINASIGN_TRACES_ACTIVES:false}
+    sampling:
+      probability: ${VINASIGN_TRACES_ECHANTILLON:0.1}
+  otlp:
+    metrics:
+      export:
+        enabled: ${VINASIGN_METRIQUES_ACTIVES:false}
+        step: ${VINASIGN_METRIQUES_PAS:60s}
+  observations:
+    key-values:
+      application: vinasign
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  swagger-ui:
+    enabled: ${VINASIGN_SWAGGER_UI:false}

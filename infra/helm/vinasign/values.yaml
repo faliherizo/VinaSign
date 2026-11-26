@@ -1,0 +1,57 @@
+# Valeurs communes. Tout ce qui dépend d'un environnement (registre, hôtes, coffre, identité) est requis et fourni par
+# le pipeline de déploiement ; le gabarit refuse de se rendre sans (fonction required).
+image:
+  registre: ""
+  etiquette: ""
+  politique: IfNotPresent
+
+serveur:
+  repliques: 3
+  port: 8300
+  # Variables non secrètes, propres à l'environnement (langue, origines, rôle applicatif…).
+  environnement: {}
+  ressources:
+    requests: { cpu: "500m", memory: "1Gi" }
+    limits: { cpu: "2", memory: "2Gi" }
+
+interfaces:
+  port: 8080
+  repliques: 2
+  ressources:
+    requests: { cpu: "50m", memory: "64Mi" }
+    limits: { cpu: "500m", memory: "256Mi" }
+  # Aucune page n'est intégrable en iframe, sauf la session intégrée du signataire (/integre/{jeton}), dont les origines
+  # autorisées viennent de l'application cliente, en base (VS-055) : rien à configurer ici.
+  portail:
+    ancetresAutorises: "'none'"
+    # Origine du fournisseur d'identité du portail (ex. https://connexion.exemple.ca), ajoutée à connect-src et frame-src.
+    fournisseurIdentite: ""
+  signataire:
+    ancetresAutorises: "'none'"
+
+# Conversion bureautique → PDF/A (VS-035), isolée du réseau.
+conversion:
+  image: "gotenberg/gotenberg:8.17.3"
+  repliques: 2
+  delai: 120s
+  ressources:
+    requests: { cpu: "250m", memory: "512Mi" }
+    limits: { cpu: "2", memory: "2Gi" }
+
+# Secrets lus dans Key Vault par le pilote CSI, avec l'identité de l'application (Workload Identity).
+coffre:
+  nom: ""
+  locataire: ""
+  identiteClientId: ""
+  secrets:
+    VINASIGN_DB_URL: vinasign-db-url
+    VINASIGN_DB_MDP: vinasign-db-mdp
+    APPLICATIONINSIGHTS_CONNECTION_STRING: vinasign-otel-connexion
+
+entree:
+  classe: ""
+  hotes:
+    api: ""
+    portail: ""
+    signataire: ""
+  annotations: {}

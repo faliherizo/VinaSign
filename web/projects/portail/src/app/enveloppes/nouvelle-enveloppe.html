@@ -1,0 +1,49 @@
+<h1>{{ i18n.t('envoi.titre') }}</h1>
+<form (submit)="$event.preventDefault(); envoyer()">
+  <fieldset>
+    <legend>{{ i18n.t('envoi.enveloppe') }}</legend>
+    <label>{{ i18n.t('envoi.reference') }}
+      <input name="reference" [readonly]="brouillon() !== null" required maxlength="200" autocomplete="off" [value]="reference()" (input)="reference.set(texte($event))" />
+    </label>
+    <vs-liste-referentiel type="mode-enveloppe" attributRequis="deposeDocument" [(valeur)]="mode" [messageErreur]="i18n.t('envoi.erreurListe')" />
+    <label>{{ i18n.t('envoi.echeance') }}
+      <input name="echeance" type="date" [readonly]="brouillon() !== null" required [value]="echeance()" (input)="echeance.set(texte($event))" />
+    </label>
+  </fieldset>
+  <fieldset>
+    <legend>{{ i18n.t('envoi.document') }}</legend>
+    <label>{{ i18n.t('envoi.fichier') }}
+      <input name="document" type="file" accept=".pdf,.docx,.odt,application/pdf" required [disabled]="brouillon()?.depose ?? false" (change)="choisirFichier($event)" />
+    </label>
+  </fieldset>
+  <fieldset>
+    <legend>{{ i18n.t('envoi.signataires') }}</legend>
+    <label class="case"><input type="checkbox" [checked]="dansLOrdre()" (change)="dansLOrdre.set(!dansLOrdre())" />{{ i18n.t('envoi.dansLOrdre') }}</label>
+    @for (s of signataires(); track $index; let i = $index) {
+      <div class="signataire" role="group" [attr.aria-label]="i18n.t('envoi.signataire') + ' ' + (i + 1)">
+        <label>{{ i18n.t('envoi.nom') }}
+          <input [name]="'nom' + i" required maxlength="200" autocomplete="name" [value]="s.nom" (input)="modifier(i, 'nom', texte($event))" />
+        </label>
+        <label>{{ i18n.t('envoi.courriel') }}
+          <input [name]="'courriel' + i" type="email" required maxlength="320" autocomplete="email" [value]="s.courriel" (input)="modifier(i, 'courriel', texte($event))" />
+        </label>
+        <vs-liste-referentiel type="langue" [valeur]="s.langue" (valeurChange)="modifier(i, 'langue', $event)" [messageErreur]="i18n.t('envoi.erreurListe')" />
+        <vs-liste-referentiel type="type-signataire" attributRequis="exigeCourriel" [valeur]="s.type" (valeurChange)="modifier(i, 'type', $event)" [messageErreur]="i18n.t('envoi.erreurListe')" />
+        @if (signataires().length > 1) {
+          <button type="button" (click)="retirer(i)">{{ i18n.t('envoi.retirer') }} {{ i + 1 }}</button>
+        }
+      </div>
+    }
+    <button type="button" (click)="ajouter()">{{ i18n.t('envoi.ajouter') }}</button>
+  </fieldset>
+  @if (echec(); as e) {
+    <p class="erreur" role="alert">{{ i18n.t('envoi.echec.' + e) }}</p>
+  }
+  @if (envoi() && etape(); as e) {
+    <p class="succes" aria-live="polite">{{ i18n.t('envoi.etape.' + e) }}</p>
+  }
+  <div class="titre">
+    <button type="submit" name="placer" [disabled]="envoi()" (click)="choisirSuite('placement')">{{ i18n.t('envoi.placer') }}</button>
+    <button type="submit" name="envoyer" [disabled]="envoi()" (click)="choisirSuite('envoi')">{{ i18n.t('envoi.envoyer') }}</button>
+  </div>
+</form>

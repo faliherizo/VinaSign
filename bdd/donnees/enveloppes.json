@@ -1,0 +1,1240 @@
+{
+  "comptes": {
+    "application": {
+      "mode": "application",
+      "portees": [
+        "enveloppes-creer",
+        "enveloppes-lire",
+        "enveloppes-envoyer",
+        "documents-deposer",
+        "signataires-gerer",
+        "sessions-creer",
+        "preuves-lire",
+        "documents-telecharger"
+      ],
+      "description": "Application cliente d'une organisation (client credentials, private_key_jwt), enregistrée pour l'exécution"
+    },
+    "application-empreintes": {
+      "mode": "application",
+      "portees": [
+        "empreintes-signer"
+      ],
+      "description": "Application qui fait signer des empreintes (mode empreinte, VS-034)"
+    }
+  },
+  "cas": {
+    "acces.jeton": {
+      "description": "L'application obtient un jeton de courte durée portant son organisation et ses portées ; sans jeton, l'API refuse",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/jeton",
+          "verifier": [
+            {
+              "chemin": "$.portees",
+              "inclut": "enveloppes-creer"
+            },
+            {
+              "chemin": "$.organisation",
+              "existe": true
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/jeton",
+          "anonyme": true,
+          "statut": 401
+        }
+      ]
+    },
+    "enveloppes.parcours-document": {
+      "description": "Création idempotente, signataires ordonnés, dépôt par URL présignée à usage unique, contrôle et empreinte, envoi ; seul le premier ordre peut agir",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/langue",
+          "capturer": {
+            "langue": "$.valeurs[0].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=document].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-signataire",
+          "capturer": {
+            "invite": "$.valeurs[?code=invite].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          },
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "brouillon"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "verifier": [
+            {
+              "chemin": "$.id",
+              "egal": "${id}"
+            }
+          ],
+          "note": "même clé, même corps : même réponse, aucune seconde enveloppe"
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-${unique}"
+          },
+          "statut": 422,
+          "corps": {
+            "externalReference": "AUTRE-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "cle-idempotence-reutilisee"
+            }
+          ]
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Alice Tremblay",
+              "courriel": "alice@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 1
+            },
+            {
+              "nom": "Bruno Roy",
+              "courriel": "bruno@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 2
+            }
+          ],
+          "verifier": [
+            {
+              "chemin": "$.signataires",
+              "longueurMin": 2
+            },
+            {
+              "texteAbsent": "@exemple.ca"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents",
+          "statut": 201,
+          "capturer": {
+            "url": "$.url",
+            "depot": "$.id"
+          }
+        },
+        {
+          "appel": "PUT ${url}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "statut": 204
+        },
+        {
+          "appel": "PUT ${url}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "statut": 422,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "depot-invalide"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents/${depot}/confirmation",
+          "verifier": [
+            {
+              "chemin": "$.documents[0].nature",
+              "egal": "original"
+            },
+            {
+              "chemin": "$.documents[0].pages",
+              "egal": 1
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send",
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "envoyee"
+            },
+            {
+              "chemin": "$.signataires[0].peutAgir",
+              "egal": true
+            },
+            {
+              "chemin": "$.signataires[1].peutAgir",
+              "egal": false
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "verifier": [
+            {
+              "chemin": "$.evenements[*].type",
+              "inclut": "enveloppe-envoyee"
+            }
+          ]
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "statut": 409,
+          "corps": [
+            {
+              "nom": "Zoé",
+              "courriel": "zoe@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 1
+            }
+          ]
+        }
+      ]
+    },
+    "enveloppes.refus-et-annulation": {
+      "description": "Un fichier qui n'est pas un PDF est refusé explicitement ; sans document, l'envoi est refusé ; l'annulation invalide le dépôt et ne se répète pas",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=document].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-refus-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-REFUS-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${futur:86400}"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents",
+          "statut": 201,
+          "capturer": {
+            "url": "$.url",
+            "depot": "$.id"
+          }
+        },
+        {
+          "appel": "PUT ${url}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "texte",
+            "type": "application/pdf"
+          },
+          "statut": 204
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents/${depot}/confirmation",
+          "statut": 422,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "document-type"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send",
+          "statut": 422,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "signataires-requis"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents",
+          "statut": 201,
+          "capturer": {
+            "url2": "$.url"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/cancel",
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "annulee"
+            }
+          ]
+        },
+        {
+          "appel": "PUT ${url2}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "statut": 422
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/cancel",
+          "statut": 409,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "transition-enveloppe-interdite"
+            }
+          ]
+        }
+      ]
+    },
+    "signataire.invitation": {
+      "description": "L'envoi invite le premier signataire par courriel (lien personnel, sans pièce jointe) ; le lien ouvre une session ; le consentement versionné est retenu ; l'annulation invalide le lien",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/langue",
+          "capturer": {
+            "langue": "$.valeurs[?code=fr].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=empreinte].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-signataire",
+          "capturer": {
+            "invite": "$.valeurs[?code=invite].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-sig-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-SIG-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Alice Tremblay",
+              "courriel": "alice-${unique}@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 1
+            },
+            {
+              "nom": "Bruno Roy",
+              "courriel": "bruno-${unique}@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 2
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send"
+        },
+        {
+          "courriel": {
+            "destinataire": "alice-${unique}@exemple.ca",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        },
+        {
+          "appel": "POST /api/v1/signataire/ouverture",
+          "anonyme": true,
+          "corps": {
+            "jeton": "${lien}"
+          },
+          "capturer": {
+            "session": "$.jetonSession",
+            "version": "$.versionConsentement"
+          },
+          "verifier": [
+            {
+              "chemin": "$.nom",
+              "egal": "Alice Tremblay"
+            },
+            {
+              "chemin": "$.peutAgir",
+              "egal": true
+            },
+            {
+              "chemin": "$.aConsenti",
+              "egal": false
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/signataire/consentement",
+          "anonyme": true,
+          "entetes": {
+            "X-Session-Signataire": "${session}"
+          },
+          "corps": {
+            "version": "${version}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.empreinteTexte",
+              "existe": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/signataire/consentement",
+          "anonyme": true,
+          "corps": {
+            "version": "${version}"
+          },
+          "statut": 401
+        },
+        {
+          "appel": "POST /api/v1/signataire/ouverture",
+          "anonyme": true,
+          "corps": {
+            "jeton": "${lien}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.aConsenti",
+              "egal": true
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/referentiels/canal-code",
+          "capturer": {
+            "canal": "$.valeurs[?code=courriel].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/signataire/code",
+          "anonyme": true,
+          "entetes": {
+            "X-Session-Signataire": "${session}"
+          },
+          "corps": {
+            "canal": "${canal}"
+          },
+          "statut": 202
+        },
+        {
+          "courriel": {
+            "destinataire": "alice-${unique}@exemple.ca",
+            "motif": "code de vérification est : (\\d{6})",
+            "capturer": "code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/signataire/code/verification",
+          "anonyme": true,
+          "entetes": {
+            "X-Session-Signataire": "${session}"
+          },
+          "corps": {
+            "code": "${code}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.valide",
+              "egal": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/signataire/code/verification",
+          "anonyme": true,
+          "entetes": {
+            "X-Session-Signataire": "${session}"
+          },
+          "corps": {
+            "code": "${code}"
+          },
+          "statut": 409,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "code-deja-utilise"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/cancel"
+        },
+        {
+          "appel": "POST /api/v1/signataire/ouverture",
+          "anonyme": true,
+          "corps": {
+            "jeton": "${lien}"
+          },
+          "statut": 404,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "lien-invalide"
+            }
+          ]
+        }
+      ]
+    },
+    "empreintes.signature-et-verification": {
+      "description": "L'application fait signer l'empreinte de son document sans le transmettre ; un tiers vérifie publiquement la signature, horodatée ; une autre empreinte est refusée",
+      "profil": "application-empreintes",
+      "etapes": [
+        {
+          "appel": "POST /api/v1/empreintes/signature",
+          "corps": {
+            "sha256": "5b7b1e4c2a9f0d3e8c6a1b2d4f6e8a0c2e4f6a8b0d2f4a6c8e0b2d4f6a8c0e2f"
+          },
+          "capturer": {
+            "cms": "$.cms"
+          },
+          "verifier": [
+            {
+              "chemin": "$.horodatee",
+              "egal": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/verifications",
+          "anonyme": true,
+          "corps": {
+            "sha256": "5b7b1e4c2a9f0d3e8c6a1b2d4f6e8a0c2e4f6a8b0d2f4a6c8e0b2d4f6a8c0e2f",
+            "cms": "${cms}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": true
+            },
+            {
+              "chemin": "$.niveau",
+              "egal": "CAdES-B-T"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/verifications",
+          "anonyme": true,
+          "corps": {
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "cms": "${cms}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": false
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/verifications",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": false
+            },
+            {
+              "chemin": "$.niveau",
+              "egal": ""
+            }
+          ]
+        }
+      ]
+    },
+    "signataire.session-integree": {
+      "description": "L'application atteste son utilisateur (assertion signée, VS-044) et obtient pour lui une session intégrée de 5 minutes, à usage unique, limitée aux actions demandées ; sans attestation valide, ou sans seconde preuve récente au niveau renforcé, elle est refusée",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/langue",
+          "capturer": {
+            "langue": "$.valeurs[?code=fr].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=empreinte].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-signataire",
+          "capturer": {
+            "utilisateur": "$.valeurs[?code=utilisateur-application].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/action-signataire",
+          "capturer": {
+            "signer": "$.valeurs[?code=signer].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-int-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-INT-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Dre Roy",
+              "langue": "${langue}",
+              "type": "${utilisateur}",
+              "ordre": 1,
+              "sujetExterne": "medecin-${unique}"
+            }
+          ],
+          "capturer": {
+            "signataire": "$.signataires[0].id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send"
+        },
+        {
+          "appel": "GET /api/v1/referentiels/niveau-authentification",
+          "capturer": {
+            "renforce": "$.valeurs[?code=renforce].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/sessions",
+          "statut": 403,
+          "corps": {
+            "signataire": "${signataire}",
+            "actions": [
+              "${signer}"
+            ]
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "attestation-refusee"
+            }
+          ],
+          "note": "utilisateur de l'application : attestation exigée"
+        },
+        {
+          "attestation": {
+            "sujet": "autre-${unique}",
+            "amr": [
+              "pwd"
+            ],
+            "capturer": "etranger"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/sessions",
+          "statut": 403,
+          "corps": {
+            "signataire": "${signataire}",
+            "actions": [
+              "${signer}"
+            ],
+            "attestation": "${etranger}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "attestation-refusee"
+            }
+          ],
+          "note": "le sujet doit être celui du signataire"
+        },
+        {
+          "attestation": {
+            "sujet": "medecin-${unique}",
+            "amr": [
+              "pwd"
+            ],
+            "capturer": "motDePasse"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/sessions",
+          "statut": 403,
+          "corps": {
+            "signataire": "${signataire}",
+            "actions": [
+              "${signer}"
+            ],
+            "attestation": "${motDePasse}",
+            "niveau": "${renforce}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "attestation-refusee"
+            }
+          ],
+          "note": "renforcé : seconde preuve exigée"
+        },
+        {
+          "attestation": {
+            "sujet": "medecin-${unique}",
+            "amr": [
+              "pwd",
+              "otp"
+            ],
+            "authIlYa": 60,
+            "capturer": "forte"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/sessions",
+          "statut": 201,
+          "corps": {
+            "signataire": "${signataire}",
+            "actions": [
+              "${signer}"
+            ],
+            "attestation": "${forte}",
+            "niveau": "${renforce}"
+          },
+          "capturer": {
+            "jeton": "$.url ~ /integre/([A-Za-z0-9_-]+)$"
+          }
+        },
+        {
+          "appel": "POST /api/v1/signataire/ouverture",
+          "anonyme": true,
+          "corps": {
+            "jeton": "${jeton}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.actions",
+              "inclut": "signer"
+            },
+            {
+              "chemin": "$.nom",
+              "egal": "Dre Roy"
+            },
+            {
+              "chemin": "$.peutAgir",
+              "egal": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/signataire/ouverture",
+          "anonyme": true,
+          "corps": {
+            "jeton": "${jeton}"
+          },
+          "statut": 404,
+          "note": "usage unique"
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/sessions",
+          "statut": 403,
+          "corps": {
+            "signataire": "${signataire}",
+            "actions": [
+              "${signer}"
+            ],
+            "attestation": "${forte}",
+            "niveau": "${renforce}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "attestation-refusee"
+            }
+          ],
+          "note": "une attestation ne sert qu'une fois"
+        }
+      ]
+    },
+    "signataire.parcours-ecran": {
+      "description": "Prépare une enveloppe « document » à un signataire, avec un champ texte obligatoire et une zone de signature, l'envoie et capture le lien reçu par courriel",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/langue",
+          "capturer": {
+            "langue": "$.valeurs[?code=fr].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=document].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-signataire",
+          "capturer": {
+            "invite": "$.valeurs[?code=invite].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-champ",
+          "capturer": {
+            "texte": "$.valeurs[?code=texte].code",
+            "zone": "$.valeurs[?code=signature].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-ecran-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-ECRAN-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Camille Gagnon",
+              "courriel": "camille-${unique}@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 1
+            }
+          ],
+          "capturer": {
+            "camille": "$.signataires[0].id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents",
+          "statut": 201,
+          "capturer": {
+            "url": "$.url",
+            "depot": "$.id"
+          }
+        },
+        {
+          "appel": "PUT ${url}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "statut": 204
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents/${depot}/confirmation"
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/fields",
+          "corps": [
+            {
+              "signataire": "${camille}",
+              "type": "${texte}",
+              "libelle": "Titre du poste",
+              "page": 1,
+              "x": 0.1,
+              "y": 0.1,
+              "largeur": 0.4,
+              "hauteur": 0.05,
+              "obligatoire": true
+            },
+            {
+              "signataire": "${camille}",
+              "type": "${zone}",
+              "libelle": "Signature de Camille",
+              "page": 1,
+              "x": 0.1,
+              "y": 0.8,
+              "largeur": 0.3,
+              "hauteur": 0.08,
+              "obligatoire": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send"
+        },
+        {
+          "courriel": {
+            "destinataire": "camille-${unique}@exemple.ca",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
+    },
+    "signataire.parcours-ecran-verification": {
+      "description": "Après la signature à l'écran, la plateforme finalise l'enveloppe : document final scellé, journal intègre, certificat de réalisation et dossier de preuve",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "attendre": 90,
+          "verifier": [
+            {
+              "chemin": "$.signataires[0].statut",
+              "egal": "signe"
+            },
+            {
+              "chemin": "$.statut",
+              "egal": "terminee"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/documents/final",
+          "statut": 200
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/preuve/integrite",
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": true
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/preuve/certificat",
+          "statut": 200
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/preuve/dossier",
+          "statut": 200
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "verifier": [
+            {
+              "chemin": "$.evenements[*].type",
+              "inclut": "preuve-exportee"
+            }
+          ]
+        }
+      ]
+    },
+    "signataire.integration-ecran": {
+      "description": "Prépare une enveloppe « document » et obtient, pour son signataire, une session intégrée qui permet de consulter, signer et refuser",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/langue",
+          "capturer": {
+            "langue": "$.valeurs[?code=fr].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=document].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-signataire",
+          "capturer": {
+            "invite": "$.valeurs[?code=invite].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-champ",
+          "capturer": {
+            "texte": "$.valeurs[?code=texte].code",
+            "zone": "$.valeurs[?code=signature].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-integ-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-INTEG-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Camille Gagnon",
+              "courriel": "camille-${unique}@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 1
+            }
+          ],
+          "capturer": {
+            "camille": "$.signataires[0].id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents",
+          "statut": 201,
+          "capturer": {
+            "url": "$.url",
+            "depot": "$.id"
+          }
+        },
+        {
+          "appel": "PUT ${url}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "statut": 204
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents/${depot}/confirmation"
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/fields",
+          "corps": [
+            {
+              "signataire": "${camille}",
+              "type": "${texte}",
+              "libelle": "Titre du poste",
+              "page": 1,
+              "x": 0.1,
+              "y": 0.1,
+              "largeur": 0.4,
+              "hauteur": 0.05,
+              "obligatoire": true
+            },
+            {
+              "signataire": "${camille}",
+              "type": "${zone}",
+              "libelle": "Signature de Camille",
+              "page": 1,
+              "x": 0.1,
+              "y": 0.8,
+              "largeur": 0.3,
+              "hauteur": 0.08,
+              "obligatoire": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send"
+        },
+        {
+          "appel": "GET /api/v1/referentiels/action-signataire",
+          "capturer": {
+            "consulter": "$.valeurs[?code=consulter].code",
+            "signer": "$.valeurs[?code=signer].code",
+            "refuser": "$.valeurs[?code=refuser].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/sessions",
+          "statut": 201,
+          "corps": {
+            "signataire": "${camille}",
+            "actions": [
+              "${consulter}",
+              "${signer}",
+              "${refuser}"
+            ]
+          },
+          "capturer": {
+            "integration": "$.url"
+          }
+        }
+      ]
+    },
+    "enveloppes.liste": {
+      "description": "L'application liste ses enveloppes, les plus récentes d'abord, page par page (curseur opaque), filtrées par un statut du référentiel ; un curseur falsifié est refusé",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=document].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/statut-enveloppe",
+          "capturer": {
+            "brouillon": "$.valeurs[?code=brouillon].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-a-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-A-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "premiere": "$.id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-b-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-B-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "seconde": "$.id"
+          }
+        },
+        {
+          "appel": "GET /api/v1/envelopes?limite=1&statut=${brouillon}",
+          "capturer": {
+            "suivant": "$.suivant"
+          },
+          "verifier": [
+            {
+              "chemin": "$.elements[0].id",
+              "egal": "${seconde}"
+            },
+            {
+              "chemin": "$.suivant",
+              "existe": true
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes?limite=1&statut=${brouillon}&apres=${suivant}",
+          "verifier": [
+            {
+              "chemin": "$.elements[0].id",
+              "egal": "${premiere}"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes?apres=falsifie",
+          "statut": 422
+        }
+      ]
+    }
+  },
+  "ecrans": {
+    "Signataire — parcours": {
+      "chemin": "${signataire}/s/${lien}",
+      "titre": "Signer un document|Sign a document"
+    },
+    "Signataire — parcours (téléphone)": {
+      "chemin": "${signataire}/s/${lien}",
+      "titre": "Signer un document|Sign a document",
+      "largeur": 390
+    },
+    "Signataire — parcours (tablette)": {
+      "chemin": "${signataire}/s/${lien}",
+      "titre": "Signer un document|Sign a document",
+      "largeur": 768
+    },
+    "Signataire — parcours (portable)": {
+      "chemin": "${signataire}/s/${lien}",
+      "titre": "Signer un document|Sign a document",
+      "largeur": 1280
+    },
+    "Signataire — parcours (grand écran)": {
+      "chemin": "${signataire}/s/${lien}",
+      "titre": "Signer un document|Sign a document",
+      "largeur": 1680
+    }
+  }
+}

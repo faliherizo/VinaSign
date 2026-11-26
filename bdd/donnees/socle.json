@@ -1,0 +1,166 @@
+{
+  "ecrans": {
+    "Portail — référentiels": {
+      "chemin": "/referentiels",
+      "titre": "Référentiels|Reference lists"
+    },
+    "Portail — référentiels (téléphone)": {
+      "chemin": "/referentiels",
+      "titre": "Référentiels|Reference lists",
+      "largeur": 390
+    },
+    "Portail — référentiels (tablette)": {
+      "chemin": "/referentiels",
+      "titre": "Référentiels|Reference lists",
+      "largeur": 768
+    },
+    "Portail — référentiels (grand écran)": {
+      "chemin": "/referentiels",
+      "titre": "Référentiels|Reference lists",
+      "largeur": 1680
+    },
+    "Signataire — accueil (téléphone)": {
+      "chemin": "${signataire}/",
+      "titre": "Signer un document|Sign a document",
+      "largeur": 390
+    },
+    "Portail — état du service": {
+      "chemin": "/etat",
+      "titre": "État du service|Service status"
+    },
+    "Portail — inscription": {
+      "chemin": "/inscription",
+      "titre": "Créer votre organisation|Create your organization"
+    },
+    "Portail — connexion": {
+      "chemin": "/connexion?retour=%2Ffacturation",
+      "titre": "Connexion|Sign in"
+    }
+  },
+  "cas": {
+    "socle.referentiels": {
+      "description": "Les référentiels sont découverts par l'API (aucun code connu à l'avance) ; chacun se lit dans la langue demandée ; un code inconnu rend un problème RFC 9457",
+      "profil": "visiteur",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels?langue=fr",
+          "capturer": {
+            "premier": "$[0].code"
+          },
+          "verifier": [
+            {
+              "chemin": "$",
+              "longueurMin": 1
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/referentiels/${premier}?langue=en",
+          "verifier": [
+            {
+              "chemin": "$.langue",
+              "egal": "en"
+            },
+            {
+              "chemin": "$.valeurs",
+              "longueurMin": 1
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/referentiels/inexistant-${unique}",
+          "statut": 404,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "referentiel-inconnu"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/referentiels/MAJUSCULES",
+          "statut": 400,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "requete-invalide"
+            }
+          ]
+        }
+      ]
+    },
+    "etat.public": {
+      "description": "La page d'état est publique : impact global, impact de chaque composant du référentiel, historique ; les objectifs de service sont un référentiel",
+      "profil": "visiteur",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/impact-incident?langue=fr",
+          "capturer": {
+            "normal": "$.valeurs[0].code"
+          },
+          "verifier": [
+            {
+              "chemin": "$.valeurs",
+              "longueurMin": 2
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/referentiels/objectif-service?langue=fr",
+          "verifier": [
+            {
+              "chemin": "$.valeurs",
+              "longueurMin": 1
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/availability",
+          "verifier": [
+            {
+              "chemin": "$.impact",
+              "longueurMin": 1
+            },
+            {
+              "chemin": "$.incidents",
+              "existe": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/platform/incidents",
+          "statut": 401
+        }
+      ]
+    },
+    "identite.rappel": {
+      "description": "Le rappel du fournisseur d'identité est public mais n'est cru que signé du secret partagé ; le niveau « identité vérifiée » est un référentiel",
+      "profil": "visiteur",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/niveau-authentification?langue=fr",
+          "verifier": [
+            {
+              "chemin": "$.valeurs[*].attributs.methode",
+              "inclut": "verification-identite"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/verification-identite/rappel",
+          "corps": {
+            "reference": "inconnue-${unique}",
+            "resultat": "reussie"
+          },
+          "statut": 403,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "verification-identite-refusee"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

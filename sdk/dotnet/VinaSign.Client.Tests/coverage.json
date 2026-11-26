@@ -1,0 +1,451 @@
+{
+  "VinaSign.Client.dll": {
+    "/Users/faliherizo/project/vinasign/sdk/dotnet/VinaSign.Client/Jetons.cs": {
+      "VinaSign.Client.Identite": {
+        "System.Uri VinaSign.Client.Identite::get_Serveur()": {
+          "Lines": {
+            "7": 32
+          },
+          "Branches": []
+        },
+        "System.String VinaSign.Client.Identite::get_Emetteur()": {
+          "Lines": {
+            "8": 12
+          },
+          "Branches": []
+        },
+        "System.String VinaSign.Client.Identite::get_EmetteurEffectif()": {
+          "Lines": {
+            "10": 5
+          },
+          "Branches": [
+            {
+              "Line": 10,
+              "Offset": 7,
+              "EndOffset": 9,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 2
+            },
+            {
+              "Line": 10,
+              "Offset": 7,
+              "EndOffset": 28,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 5
+            }
+          ]
+        }
+      },
+      "VinaSign.Client.Jetons": {
+        "System.Void VinaSign.Client.Jetons::.ctor(VinaSign.Client.Identite,System.Net.Http.HttpClient,System.TimeProvider,System.Net.Http.HttpMessageHandler)": {
+          "Lines": {
+            "22": 2,
+            "24": 2,
+            "26": 2,
+            "27": 2,
+            "28": 2,
+            "29": 2,
+            "30": 2,
+            "31": 2
+          },
+          "Branches": []
+        }
+      },
+      "VinaSign.Client.Jetons/<ObtenirAsync>d__7": {
+        "System.Void VinaSign.Client.Jetons/<ObtenirAsync>d__7::MoveNext()": {
+          "Lines": {
+            "34": 5,
+            "35": 5,
+            "37": 5,
+            "38": 5,
+            "39": 1,
+            "40": 1,
+            "42": 4,
+            "43": 4,
+            "44": 4,
+            "45": 4,
+            "46": 4,
+            "47": 4,
+            "48": 4,
+            "49": 4,
+            "50": 4,
+            "51": 4,
+            "52": 4,
+            "53": 4,
+            "54": 4,
+            "55": 1,
+            "56": 1,
+            "58": 3,
+            "59": 3,
+            "60": 3,
+            "61": 3,
+            "64": 5,
+            "65": 5,
+            "66": 5,
+            "67": 4
+          },
+          "Branches": [
+            {
+              "Line": 34,
+              "Offset": 16,
+              "EndOffset": 24,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 5
+            },
+            {
+              "Line": 34,
+              "Offset": 16,
+              "EndOffset": 137,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 5
+            },
+            {
+              "Line": 38,
+              "Offset": 172,
+              "EndOffset": 174,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 3
+            },
+            {
+              "Line": 38,
+              "Offset": 172,
+              "EndOffset": 222,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 2
+            },
+            {
+              "Line": 38,
+              "Offset": 227,
+              "EndOffset": 229,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 1
+            },
+            {
+              "Line": 38,
+              "Offset": 227,
+              "EndOffset": 247,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 4
+            },
+            {
+              "Line": 54,
+              "Offset": 948,
+              "EndOffset": 950,
+              "Path": 0,
+              "Ordinal": 6,
+              "Hits": 1
+            },
+            {
+              "Line": 54,
+              "Offset": 948,
+              "EndOffset": 1033,
+              "Path": 1,
+              "Ordinal": 7,
+              "Hits": 3
+            },
+            {
+              "Line": 60,
+              "Offset": 1162,
+              "EndOffset": 1164,
+              "Path": 0,
+              "Ordinal": 8,
+              "Hits": 0
+            },
+            {
+              "Line": 60,
+              "Offset": 1162,
+              "EndOffset": 1169,
+              "Path": 1,
+              "Ordinal": 9,
+              "Hits": 3
+            }
+          ]
+        }
+      },
+      "VinaSign.Client.Jetons/<SendAsync>d__8": {
+        "System.Void VinaSign.Client.Jetons/<SendAsync>d__8::MoveNext()": {
+          "Lines": {
+            "70": 1,
+            "71": 1,
+            "72": 1,
+            "73": 1
+          },
+          "Branches": []
+        }
+      },
+      "VinaSign.Client.JetonRefuseException": {
+        "System.Void VinaSign.Client.JetonRefuseException::.ctor(System.String)": {
+          "Lines": {
+            "76": 1
+          },
+          "Branches": []
+        }
+      }
+    },
+    "/Users/faliherizo/project/vinasign/sdk/dotnet/VinaSign.Client/JwtSigne.cs": {
+      "VinaSign.Client.JwtSigne": {
+        "System.String VinaSign.Client.JwtSigne::Signer(System.Security.Cryptography.AsymmetricAlgorithm,System.Collections.Generic.IReadOnlyDictionary`2<System.String,System.Object>,System.String)": {
+          "Lines": {
+            "14": 6,
+            "15": 6,
+            "16": 6,
+            "17": 6,
+            "18": 4,
+            "19": 4,
+            "20": 4,
+            "21": 6,
+            "22": 6,
+            "23": 6,
+            "24": 6,
+            "25": 6,
+            "26": 6,
+            "27": 6
+          },
+          "Branches": [
+            {
+              "Line": 17,
+              "Offset": 52,
+              "EndOffset": 54,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 4
+            },
+            {
+              "Line": 17,
+              "Offset": 52,
+              "EndOffset": 69,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 6
+            },
+            {
+              "Line": 23,
+              "Offset": 126,
+              "EndOffset": 128,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 1
+            },
+            {
+              "Line": 23,
+              "Offset": 126,
+              "EndOffset": 148,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 5
+            }
+          ]
+        },
+        "System.String VinaSign.Client.JwtSigne::Algorithme(System.Security.Cryptography.AsymmetricAlgorithm)": {
+          "Lines": {
+            "29": 9,
+            "30": 9,
+            "31": 5,
+            "32": 5,
+            "33": 2,
+            "34": 9
+          },
+          "Branches": [
+            {
+              "Line": 29,
+              "Offset": 12,
+              "EndOffset": 14,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 4
+            },
+            {
+              "Line": 29,
+              "Offset": 12,
+              "EndOffset": 26,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 5
+            },
+            {
+              "Line": 29,
+              "Offset": 22,
+              "EndOffset": 34,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 3
+            },
+            {
+              "Line": 32,
+              "Offset": 45,
+              "EndOffset": 49,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 2
+            },
+            {
+              "Line": 29,
+              "Offset": 22,
+              "EndOffset": 57,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 2
+            },
+            {
+              "Line": 32,
+              "Offset": 45,
+              "EndOffset": 57,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 2
+            }
+          ]
+        },
+        "System.String VinaSign.Client.JwtSigne::B64(System.Byte[])": {
+          "Lines": {
+            "36": 18
+          },
+          "Branches": []
+        }
+      }
+    },
+    "/Users/faliherizo/project/vinasign/sdk/dotnet/VinaSign.Client/Outils.cs": {
+      "VinaSign.Client.Fabrique": {
+        "VinaSign.Client.Genere.VinaSignApi VinaSign.Client.Fabrique::Creer(VinaSign.Client.Identite,System.Net.Http.HttpMessageHandler,System.TimeProvider)": {
+          "Lines": {
+            "11": 1,
+            "12": 1,
+            "13": 1,
+            "14": 1,
+            "15": 1
+          },
+          "Branches": [
+            {
+              "Line": 12,
+              "Offset": 3,
+              "EndOffset": 5,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            },
+            {
+              "Line": 12,
+              "Offset": 3,
+              "EndOffset": 19,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 1
+            },
+            {
+              "Line": 13,
+              "Offset": 30,
+              "EndOffset": 32,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 1
+            },
+            {
+              "Line": 13,
+              "Offset": 30,
+              "EndOffset": 38,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 1
+            }
+          ]
+        }
+      },
+      "VinaSign.Client.Attestations": {
+        "System.String VinaSign.Client.Attestations::Attester(VinaSign.Client.Identite,System.String,System.Collections.Generic.IReadOnlyList`1<System.String>,System.DateTimeOffset,System.DateTimeOffset)": {
+          "Lines": {
+            "22": 1,
+            "23": 1,
+            "24": 1,
+            "25": 1,
+            "26": 1,
+            "27": 1,
+            "28": 1,
+            "29": 1
+          },
+          "Branches": []
+        }
+      },
+      "VinaSign.Client.VinaSignWebhooks": {
+        "System.Boolean VinaSign.Client.VinaSignWebhooks::Verifier(System.String,System.Byte[])": {
+          "Lines": {
+            "41": 5,
+            "42": 5,
+            "43": 5,
+            "44": 1,
+            "45": 1,
+            "47": 4,
+            "48": 4,
+            "49": 4,
+            "50": 4,
+            "51": 5
+          },
+          "Branches": [
+            {
+              "Line": 42,
+              "Offset": 3,
+              "EndOffset": 5,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 1
+            },
+            {
+              "Line": 42,
+              "Offset": 3,
+              "EndOffset": 11,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 5
+            },
+            {
+              "Line": 43,
+              "Offset": 33,
+              "EndOffset": 35,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 1
+            },
+            {
+              "Line": 43,
+              "Offset": 33,
+              "EndOffset": 44,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 4
+            },
+            {
+              "Line": 49,
+              "Offset": 156,
+              "EndOffset": 158,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 3
+            },
+            {
+              "Line": 49,
+              "Offset": 156,
+              "EndOffset": 198,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 1
+            }
+          ]
+        },
+        "System.Void VinaSign.Client.VinaSignWebhooks::.ctor(System.String,System.TimeProvider,System.TimeSpan)": {
+          "Lines": {
+            "36": 2,
+            "38": 2
+          },
+          "Branches": []
+        }
+      }
+    }
+  }
+}

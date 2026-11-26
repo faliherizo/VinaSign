@@ -1,0 +1,70 @@
+{
+  "description": "Opérations accessibles sans authentification. Chacune a une raison d'être publique et un autre mécanisme de protection ; toute opération absente de cette liste doit refuser l'accès anonyme (401).",
+  "operations": [
+    {
+      "motif": "^GET /api/v1/referentiels(/\\{code\\})?$",
+      "raison": "Libellés des listes métier, nécessaires à l'écran du signataire avant toute authentification.",
+      "protection": "Lecture seule, aucune donnée personnelle ni d'organisation ; codes validés ; limitation de débit à la passerelle."
+    },
+    {
+      "motif": "^POST /oauth2/token$",
+      "raison": "Point de jeton OAuth 2.0 (VS-012) : l'application s'y authentifie, elle ne peut pas déjà porter un jeton.",
+      "protection": "Authentification du client par assertion signée (private_key_jwt) ; jti à usage unique ; jeton de 5 min ; limitation de débit (VS-015)."
+    },
+    {
+      "motif": "^GET /oauth2/jwks$",
+      "raison": "Clés publiques de vérification des jetons, nécessaires aux applications et SDK qui valident un jeton.",
+      "protection": "Parties publiques seulement (ServeurAutorisationTest : aucune partie privée publiée)."
+    },
+    {
+      "motif": "^GET /\\.well-known/(oauth-authorization-server|openid-configuration)$",
+      "raison": "Métadonnées du serveur d'autorisation (RFC 8414), lues par les bibliothèques clientes.",
+      "protection": "Lecture seule, aucune donnée d'organisation."
+    },
+    {
+      "motif": "^PUT /api/v1/depots/\\{jeton\\}$",
+      "raison": "URL présignée de dépôt d'un document (VS-021) : l'application ou son utilisateur y téléverse le PDF sans jeton d'accès.",
+      "protection": "Jeton de 256 bits dont seule l'empreinte est conservée ; 5 minutes ; un seul objet ; enveloppe en brouillon seulement ; taille bornée à la lecture ; contenu contrôlé (type, structure, antivirus) avant d'être retenu."
+    },
+    {
+      "motif": "^POST /api/v1/signataire/ouverture$",
+      "raison": "Ouverture du lien d'invitation par un signataire invité, sans compte (VS-040).",
+      "protection": "Jeton de 256 bits dans le corps, dont seule l'empreinte est conservée ; expirant, révocable, à usage borné ; consommé après la signature (410) ; même réponse pour tout lien invalide."
+    },
+    {
+      "motif": "^GET /api/v1/signataire/integration/ancetres$",
+      "raison": "Interrogé par le frontal avant de servir la page intégrée (VS-055) : la politique frame-ancestors en est tirée, avant toute session.",
+      "protection": "Jeton dans un en-tête, jamais dans l'URL ; seules les origines déclarées (publiques par nature) d'une session intégrée sont rendues ; même réponse « 'none' » pour tout autre jeton ; lien non ouvert ; limitation de débit (VS-015)."
+    },
+    {
+      "motif": "^POST /api/v1/verifications$",
+      "raison": "Vérification publique d'un document signé ou d'une empreinte par un tiers (VS-036).",
+      "protection": "Limitation de débit par adresse (VS-015) ; taille bornée à la lecture ; aucun contenu conservé ni journalisé ; rapport sans donnée d'organisation."
+    },
+    {
+      "motif": "^GET /api/v1/availability$",
+      "raison": "Page d'état (VS-124) : l'état du service et l'historique des incidents sont publics par nature, y compris quand l'authentification est elle-même touchée.",
+      "protection": "Lecture seule ; incidents de la plateforme seulement, aucune donnée d'organisation ni personnelle ; réponse en cache public d'une minute ; limitation de débit à la passerelle."
+    },
+    {
+      "motif": "^POST /api/v1/verification-identite/rappel$",
+      "raison": "Rappel du fournisseur de vérification d'identité (VS-131) : un service externe, sans jeton de la plateforme, communique le résultat.",
+      "protection": "Corps signé HMAC-SHA256 par un secret partagé (en-tête X-VinaSign-Signature), comparé en temps constant ; référence de 256 bits inconnue hors du fournisseur ; résultat conclu une seule fois, un résultat contraire est refusé ; limitation de débit à la passerelle."
+    },
+    {
+      "motif": "^POST /api/v1/signup$",
+      "raison": "Inscription en libre-service (VS-122) : le prospect n'a encore aucun compte.",
+      "protection": "Fermée par défaut (configuration) ; réponse identique que le courriel soit nouveau ou déjà en attente (aucune énumération, aucun courriel multiplié) ; une seule demande ouverte par courriel ; rien n'est créé avant la confirmation du courriel ; limitation de débit à la passerelle."
+    },
+    {
+      "motif": "^POST /api/v1/signup/(confirmation|consultation|domain-verification)$",
+      "raison": "Étapes du demandeur (VS-122), avant qu'aucune organisation n'existe.",
+      "protection": "Jeton de 256 bits reçu par courriel, dans le corps (jamais l'URL), dont seule l'empreinte est conservée ; lien expirant (24 h) ; même réponse pour tout jeton inconnu ; en production, l'organisation n'est créée qu'après la preuve DNS du domaine et la validation de l'administrateur de la plateforme."
+    },
+    {
+      "motif": "^POST /api/v1/billing/events$",
+      "raison": "Événements du prestataire de paiement (VS-121) : paiement confirmé, abonnement modifié, facture payée ; le prestataire n'a pas de jeton de la plateforme.",
+      "protection": "Signature Stripe (HMAC-SHA256 de l'horodatage et du corps, secret de webhook par le coffre) comparée en temps constant, horodatage à cinq minutes près ; chaque événement traité une seule fois ; aucune donnée de carte reçue ; limitation de débit à la passerelle."
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+<h1>{{ i18n.t('etat.titre') }}</h1>
+@if (erreur()) {
+  <p class="erreur" role="alert">{{ i18n.t('etat.erreur') }}</p>
+}
+@if (etat(); as e) {
+  <p class="global" role="status" [class.perturbe]="gravite(e.impact) > 0">
+    <span class="pastille" aria-hidden="true">{{ gravite(e.impact) > 0 ? '!' : '✓' }}</span>
+    {{ i18n.t('etat.global') }} {{ libelle('impacts', e.impact) }}
+  </p>
+  <p class="maj">{{ i18n.t('etat.misAJour') }} <time [attr.datetime]="e.le">{{ date(e.le, 'medium') }}</time></p>
+
+  <section aria-labelledby="titre-composants">
+    <h2 id="titre-composants">{{ i18n.t('etat.composants') }}</h2>
+    <ul class="composants">
+      @for (c of composants(); track c) {
+        <li [class.perturbe]="gravite(e.composants[c]) > 0">
+          <span>{{ libelle('composants', c) }}</span>
+          <span class="impact">{{ libelle('impacts', e.composants[c]) }}</span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section aria-labelledby="titre-incidents">
+    <h2 id="titre-incidents">{{ i18n.t('etat.incidents') }}</h2>
+    @for (i of enCours(); track i.id) {
+      <article class="incident" [attr.aria-labelledby]="'incident-' + i.id">
+        <h3 [id]="'incident-' + i.id">{{ texte(i.titre) }}</h3>
+        <p>{{ libelle('impacts', i.impact) }} · {{ i18n.t('etat.debut') }} <time [attr.datetime]="i.debut">{{ date(i.debut, 'medium') }}</time></p>
+        <ol class="communications">
+          @for (m of i.misesAJour; track m.le) {
+            <li><strong>{{ libelle('phases', m.phase) }}</strong> — <time [attr.datetime]="m.le">{{ date(m.le, 'short') }}</time> : {{ texte(m.message) }}</li>
+          }
+        </ol>
+      </article>
+    } @empty {
+      <p>{{ i18n.t('etat.aucun') }}</p>
+    }
+  </section>
+
+  <section aria-labelledby="titre-objectifs">
+    <h2 id="titre-objectifs">{{ i18n.t('etat.objectifs') }}</h2>
+    <div class="defilement" tabindex="0">
+      <table>
+        <thead><tr><th scope="col">{{ i18n.t('etat.objectif') }}</th><th scope="col">{{ i18n.t('etat.cible') }}</th></tr></thead>
+        <tbody>
+          @for (o of objectifs(); track o.code) {
+            <tr><td>{{ o.libelle }}</td><td>{{ o.attributs['cible'] }} {{ o.attributs['unite'] }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="titre-historique">
+    <h2 id="titre-historique">{{ i18n.t('etat.historique') }}</h2>
+    @for (i of passes(); track i.id) {
+      <details class="incident">
+        <summary>{{ texte(i.titre) }} — {{ libelle('impacts', i.impact) }},
+          <time [attr.datetime]="i.debut">{{ date(i.debut, 'short') }}</time> →
+          <time [attr.datetime]="i.fin">{{ date(i.fin, 'short') }}</time></summary>
+        <ol class="communications">
+          @for (m of i.misesAJour; track m.le) {
+            <li><strong>{{ libelle('phases', m.phase) }}</strong> : {{ texte(m.message) }}</li>
+          }
+        </ol>
+      </details>
+    } @empty {
+      <p>{{ i18n.t('etat.aucunHistorique') }}</p>
+    }
+  </section>
+}

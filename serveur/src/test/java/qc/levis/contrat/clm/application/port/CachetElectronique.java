@@ -1,0 +1,34 @@
+package qc.levis.contrat.clm.application.port;
+
+/**
+ * Cachet électronique normalisé des preuves (Cahier § 1.4.11 : standards reconnus de l'industrie). Signature CMS
+ * détachée (CAdES, RFC 5652) d'un document final, et signature intégrée (PAdES) du certificat de signature ; toutes deux
+ * vérifiables par des outils indépendants. L'horodatage RFC 3161 s'ajoute quand une autorité est configurée.
+ */
+public interface CachetElectronique {
+
+    /** Signature CMS détachée, encodée DER (fichier {@code .p7s}). */
+    byte[] signerDetache(byte[] contenu);
+
+    /**
+     * PDF identique, augmenté d'une signature intégrée qui couvre tout le document, des données de validation (DSS) et,
+     * avec une autorité d'horodatage, d'un horodatage de document : PAdES-B-LTA (addenda 4, Q4).
+     */
+    byte[] scellerPdf(byte[] pdf, String motif);
+
+    /** Niveau ETSI atteint par {@link #scellerPdf} : « PAdES-B-LTA » avec une autorité d'horodatage, « PAdES-B-B » sinon. */
+    String niveauPades();
+
+    /**
+     * Vrai pour le certificat de ce cachet, ou pour un certificat renouvelé au même titulaire et émis par la même
+     * autorité (signature vérifiée) : les attestations restent vérifiables après un renouvellement, jamais celles d'un
+     * autre cachet portant le même nom.
+     */
+    boolean reconnait(java.security.cert.X509Certificate certificat);
+
+    /** Titulaire du certificat de cachet (nom distinctif X.500), cité dans le certificat de signature. */
+    String titulaire();
+
+    /** Vrai pour le certificat de démonstration généré au démarrage, à remplacer par celui d'une autorité reconnue. */
+    boolean demonstration();
+}

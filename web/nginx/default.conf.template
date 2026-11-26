@@ -1,0 +1,64 @@
+# Frontal des interfaces (image nginx-unprivileged ; variables substituées au démarrage du conteneur).
+#  - VINASIGN_API_URL : amont de l'API, relayé sous /api ;
+#  - VINASIGN_ANCETRES_AUTORISES : origines autorisées à intégrer les pages en iframe : « 'none' ». Seule la page d'une
+#    session intégrée (/integre/{jeton}) est intégrable, et seulement par les origines que l'application propriétaire a
+#    déclarées : le serveur les donne pour ce jeton (VS-055, VS-ADR-004) ;
+#  - VINASIGN_FOURNISSEUR_IDENTITE : origine du fournisseur d'identité du portail (VS-ADR-009), seule autorisée en plus de
+#    la page elle-même pour les appels (découverte, jetons) et le cadre de renouvellement silencieux ; vide pour le
+#    signataire, qui ne s'y connecte pas.
+server {
+  listen 8080;
+  server_tokens off;
+  root /usr/share/nginx/html;
+
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ${VINASIGN_FOURNISSEUR_IDENTITE}; frame-src 'self' ${VINASIGN_FOURNISSEUR_IDENTITE}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors ${VINASIGN_ANCETRES_AUTORISES}" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header Referrer-Policy "no-referrer" always;
+  add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+  add_header Cross-Origin-Opener-Policy "same-origin" always;
+  add_header Cross-Origin-Resource-Policy "same-origin" always;
+
+  location /api/ {
+    proxy_pass ${VINASIGN_API_URL};
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  # Session intégrée (VS-055) : frame-ancestors tiré des origines déclarées par l'application, demandées au serveur pour
+  # ce jeton (en-tête, jamais dans l'URL relayée). Les en-têtes du serveur sont répétés : add_header n'hérite pas.
+  location ~ "^/integre/(?<jeton_integration>[A-Za-z0-9_-]{20,100})$" {
+    auth_request /_ancetres;
+    auth_request_set $ancetres $upstream_http_x_ancetres;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors $ancetres" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Cache-Control "no-store" always;
+    try_files /index.html =404;
+  }
+
+  location = /_ancetres {
+    internal;
+    proxy_pass ${VINASIGN_API_URL}/api/v1/signataire/integration/ancetres;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+    proxy_set_header X-Jeton-Integration $jeton_integration;
+  }
+
+  # config.json est monté par environnement et ne doit jamais être mis en cache.
+  location = /config.json {
+    add_header Cache-Control "no-store" always;
+    try_files $uri =404;
+  }
+
+  # Exécuteur PDF.js (module) : servi en JavaScript, sinon nosniff le fait refuser par le navigateur.
+  location ~ \.mjs$ {
+    types { text/javascript mjs; }
+    try_files $uri =404;
+  }
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}

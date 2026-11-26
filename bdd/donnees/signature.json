@@ -1,0 +1,531 @@
+{
+  "description": "Signer un document à la main : préparation, signature manuscrite de chaque signataire à son tour, scellement horodaté (RFC 3161), vérification publique du document final et détection d'une altération",
+  "cas": {
+    "signature.manuscrite-preparation": {
+      "description": "Une enveloppe « document » à deux signataires dans l'ordre : Camille (date, case, initiales, signature) puis Jean (signature) ; seule Camille est invitée",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/langue",
+          "capturer": {
+            "langue": "$.valeurs[?code=fr].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/mode-enveloppe",
+          "capturer": {
+            "mode": "$.valeurs[?code=document].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-signataire",
+          "capturer": {
+            "invite": "$.valeurs[?code=invite].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/type-champ",
+          "capturer": {
+            "zone": "$.valeurs[?code=signature].code",
+            "initiales": "$.valeurs[?code=initiales].code",
+            "date": "$.valeurs[?code=date].code",
+            "case": "$.valeurs[?code=case].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-manuscrite-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-MANUSCRITE-${unique}",
+            "mode": "${mode}",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Camille Gagnon",
+              "courriel": "camille-${unique}@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 1
+            },
+            {
+              "nom": "Jean Tremblay",
+              "courriel": "jean-${unique}@exemple.ca",
+              "langue": "${langue}",
+              "type": "${invite}",
+              "ordre": 2
+            }
+          ],
+          "capturer": {
+            "camille": "$.signataires[0].id",
+            "jean": "$.signataires[1].id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents",
+          "statut": 201,
+          "capturer": {
+            "url": "$.url",
+            "depot": "$.id"
+          }
+        },
+        {
+          "appel": "PUT ${url}",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "pdf-minimal",
+            "type": "application/pdf"
+          },
+          "statut": 204
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/documents/${depot}/confirmation"
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/fields",
+          "corps": [
+            {
+              "signataire": "${camille}",
+              "type": "${date}",
+              "libelle": "Date de signature",
+              "page": 1,
+              "x": 0.1,
+              "y": 0.1,
+              "largeur": 0.3,
+              "hauteur": 0.05,
+              "obligatoire": true
+            },
+            {
+              "signataire": "${camille}",
+              "type": "${case}",
+              "libelle": "J'approuve les conditions",
+              "page": 1,
+              "x": 0.1,
+              "y": 0.2,
+              "largeur": 0.05,
+              "hauteur": 0.05,
+              "obligatoire": true
+            },
+            {
+              "signataire": "${camille}",
+              "type": "${initiales}",
+              "libelle": "Initiales de Camille",
+              "page": 1,
+              "x": 0.6,
+              "y": 0.2,
+              "largeur": 0.15,
+              "hauteur": 0.05,
+              "obligatoire": true
+            },
+            {
+              "signataire": "${camille}",
+              "type": "${zone}",
+              "libelle": "Signature de Camille",
+              "page": 1,
+              "x": 0.1,
+              "y": 0.75,
+              "largeur": 0.3,
+              "hauteur": 0.08,
+              "obligatoire": true
+            },
+            {
+              "signataire": "${jean}",
+              "type": "${zone}",
+              "libelle": "Signature de Jean",
+              "page": 1,
+              "x": 0.55,
+              "y": 0.75,
+              "largeur": 0.3,
+              "hauteur": 0.08,
+              "obligatoire": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send"
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "note": "Ordre séquentiel : seule Camille est invitée ; Jean attend son tour",
+          "verifier": [
+            {
+              "chemin": "$.signataires[0].statut",
+              "different": "signe"
+            },
+            {
+              "chemin": "$.signataires[1].statut",
+              "different": "signe"
+            },
+            {
+              "chemin": "$.statut",
+              "different": "terminee"
+            }
+          ]
+        },
+        {
+          "courriel": {
+            "destinataire": "camille-${unique}@exemple.ca",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
+    },
+    "signature.manuscrite-tour-suivant": {
+      "description": "La signature de Camille est enregistrée, l'enveloppe n'est pas terminée ; Jean reçoit à son tour son invitation",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "attendre": 30,
+          "verifier": [
+            {
+              "chemin": "$.signataires[0].statut",
+              "egal": "signe"
+            },
+            {
+              "chemin": "$.signataires[1].statut",
+              "different": "signe"
+            },
+            {
+              "chemin": "$.statut",
+              "different": "terminee"
+            }
+          ]
+        },
+        {
+          "courriel": {
+            "destinataire": "jean-${unique}@exemple.ca",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
+    },
+    "signature.manuscrite-verification": {
+      "description": "Les deux signatures recueillies, la plateforme scelle le document final (PAdES, horodatage RFC 3161) ; n'importe qui le vérifie sans compte, et une altération d'un seul octet est détectée",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "attendre": 90,
+          "verifier": [
+            {
+              "chemin": "$.signataires[0].statut",
+              "egal": "signe"
+            },
+            {
+              "chemin": "$.signataires[1].statut",
+              "egal": "signe"
+            },
+            {
+              "chemin": "$.statut",
+              "egal": "terminee"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/documents/final",
+          "statut": 200,
+          "conserver": "final",
+          "verifier": [
+            {
+              "texteContient": "%PDF-"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/verifications",
+          "anonyme": true,
+          "note": "Vérification publique (VS-036) du document final : intègre, scellé, horodaté par une autorité (RFC 3161)",
+          "binaire": {
+            "contenu": "fichier:final",
+            "type": "application/pdf"
+          },
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": true
+            },
+            {
+              "chemin": "$.signatures[0].valide",
+              "egal": true
+            },
+            {
+              "chemin": "$.signatures[0].signataire",
+              "existe": true
+            },
+            {
+              "chemin": "$.signatures[0].horodatage",
+              "existe": true
+            },
+            {
+              "chemin": "$.niveau",
+              "egal": "PAdES-B-LTA"
+            },
+            {
+              "chemin": "$.signatures[*].horodatageDeDocument",
+              "inclut": true
+            }
+          ],
+          "capturer": {
+            "niveau": "$.niveau",
+            "horodatage": "$.signatures[0].horodatage"
+          }
+        },
+        {
+          "appel": "POST /api/v1/verifications",
+          "anonyme": true,
+          "note": "Le même document, un octet changé : la vérification le dit altéré",
+          "binaire": {
+            "contenu": "fichier-altere:final",
+            "type": "application/pdf"
+          },
+          "statut": [
+            200,
+            422
+          ],
+          "verifier": [
+            {
+              "texteAbsent": "\"integre\":true"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/preuve/integrite",
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": true
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/preuve/certificat",
+          "statut": 200
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/preuve/dossier",
+          "statut": 200
+        }
+      ]
+    },
+    "portail.preparateur": {
+      "description": "La plateforme crée une organisation et invite son administrateur ; celui-ci invite une personne qui prépare et suit les enveloppes au portail (préparatrice et auditrice)",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/role-portail",
+          "capturer": {
+            "preparateur": "$.valeurs[?code=preparateur].code",
+            "auditeur": "$.valeurs[?code=auditeur].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/organisations",
+          "statut": 201,
+          "corps": {
+            "nom": "Organisation signature ${unique}"
+          },
+          "capturer": {
+            "org": "$.id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/organisations/${org}/administrateurs",
+          "statut": 201,
+          "corps": {
+            "courriel": "admin-sig-${unique}@exemple.ca"
+          }
+        },
+        {
+          "appel": "POST /api/v1/utilisateurs",
+          "personne": "admin-sig-${unique}@exemple.ca",
+          "statut": 201,
+          "corps": {
+            "courriel": "prep-sig-${unique}@exemple.ca",
+            "roles": [
+              "${preparateur}",
+              "${auditeur}"
+            ]
+          }
+        }
+      ]
+    },
+    "portail.enveloppe-envoyee": {
+      "description": "L'enveloppe préparée à l'écran est envoyée ; sans zone placée, chaque signataire en reçoit une à l'envoi ; la signataire reçoit son invitation",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/envelopes?limite=1",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$.elements[0].referenceExterne",
+              "egal": "PORTAIL-${UNIQUE}"
+            },
+            {
+              "chemin": "$.elements[0].statut",
+              "egal": "envoyee"
+            }
+          ],
+          "capturer": {
+            "id": "$.elements[0].id"
+          }
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$.evenements[*].type",
+              "inclut": "zones-signature-par-defaut"
+            }
+          ]
+        },
+        {
+          "courriel": {
+            "destinataire": "lea-${unique}@exemple.ca",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
+    },
+    "portail.enveloppe-verification": {
+      "description": "La signature manuscrite recueillie, le document final est scellé et horodaté ; la préparatrice le télécharge et n'importe qui le vérifie",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "attendre": 90,
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "terminee"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/documents/final",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "conserver": "final"
+        },
+        {
+          "appel": "POST /api/v1/verifications",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "fichier:final",
+            "type": "application/pdf"
+          },
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": true
+            },
+            {
+              "chemin": "$.niveau",
+              "egal": "PAdES-B-LTA"
+            },
+            {
+              "chemin": "$.signatures[0].horodatage",
+              "existe": true
+            }
+          ]
+        }
+      ]
+    },
+    "portail.enveloppe-placee": {
+      "description": "Les zones placées à l'écran sont celles de l'enveloppe : initiales et signature de la signataire, à la page choisie ; aucune zone par défaut n'est ajoutée ; le Word a été converti en PDF",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/envelopes?limite=1",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$.elements[0].referenceExterne",
+              "egal": "WORD-${UNIQUE}"
+            },
+            {
+              "chemin": "$.elements[0].statut",
+              "egal": "envoyee"
+            }
+          ],
+          "capturer": {
+            "id": "$.elements[0].id"
+          },
+          "attendre": 30
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/fields",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$[*].type",
+              "inclut": "initiales"
+            },
+            {
+              "chemin": "$[*].type",
+              "inclut": "signature"
+            },
+            {
+              "chemin": "$[0].page",
+              "egal": 1
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$.evenements[*].type",
+              "exclut": "zones-signature-par-defaut"
+            },
+            {
+              "chemin": "$.documents[0].pages",
+              "egal": 1
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/documents/original",
+          "personne": "prep-sig-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "texteContient": "%PDF-"
+            }
+          ]
+        },
+        {
+          "courriel": {
+            "destinataire": "lea-${unique}@exemple.ca",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
+    }
+  },
+  "ecrans": {
+    "Signataire — signature manuscrite": {
+      "chemin": "${signataire}/s/${lien}",
+      "titre": "Signer un document|Sign a document"
+    },
+    "Portail — nouvelle enveloppe": {
+      "chemin": "/enveloppes/nouvelle",
+      "titre": "Nouvelle enveloppe|New envelope"
+    }
+  }
+}

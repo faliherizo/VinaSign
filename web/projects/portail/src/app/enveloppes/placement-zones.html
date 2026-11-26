@@ -1,0 +1,71 @@
+@switch (etat()) {
+  @case ('chargement') { <p role="status">{{ i18n.t('document.chargement') }}</p> }
+  @case ('erreur') { <p role="alert" class="erreur">{{ i18n.t('document.erreur') }}</p> }
+  @default {
+    @if (modifiable()) {
+      <section class="outils" [attr.aria-label]="i18n.t('placement.outils')">
+        <p class="consigne">{{ i18n.t('placement.consigne') }}</p>
+        <div class="rangee">
+          <div class="liste">
+            <label [for]="ids + '-pour'">{{ i18n.t('placement.pour') }}</label>
+            <select [id]="ids + '-pour'" (change)="signataire.set(valeur($event))">
+              @for (s of signataires(); track s.id) { <option [value]="s.id" [selected]="s.id === signataire()">{{ s.nom }}</option> }
+            </select>
+          </div>
+          <div class="liste">
+            <label [for]="ids + '-type'">{{ i18n.t('placement.type') }}</label>
+            <select [id]="ids + '-type'" (change)="type.set(valeur($event))">
+              @for (t of types(); track t.code) { <option [value]="t.code" [selected]="t.code === type()">{{ t.libelle }}</option> }
+            </select>
+          </div>
+          <button type="button" (click)="annuler()" [disabled]="!annulable()">{{ i18n.t('placement.annuler') }}</button>
+          <button type="button" (click)="retablir()" [disabled]="!retablissable()">{{ i18n.t('placement.retablir') }}</button>
+        </div>
+        @if (choisie() !== null && zones()[choisie()!]; as z) {
+          <div class="rangee" role="group" [attr.aria-label]="i18n.t('placement.zoneChoisie') + ' : ' + z.libelle">
+            <p class="choisie">{{ z.libelle }}</p>
+            <button type="button" [attr.aria-label]="i18n.t('placement.gauche')" (click)="bouger(-1, 0)">←</button>
+            <button type="button" [attr.aria-label]="i18n.t('placement.droite')" (click)="bouger(1, 0)">→</button>
+            <button type="button" [attr.aria-label]="i18n.t('placement.haut')" (click)="bouger(0, -1)">↑</button>
+            <button type="button" [attr.aria-label]="i18n.t('placement.bas')" (click)="bouger(0, 1)">↓</button>
+            <button type="button" (click)="agrandir(1, 0)">{{ i18n.t('placement.plusLarge') }}</button>
+            <button type="button" (click)="agrandir(-1, 0)">{{ i18n.t('placement.moinsLarge') }}</button>
+            <button type="button" (click)="agrandir(0, 1)">{{ i18n.t('placement.plusHaut') }}</button>
+            <button type="button" (click)="agrandir(0, -1)">{{ i18n.t('placement.moinsHaut') }}</button>
+            <label class="case"><input type="checkbox" [checked]="z.obligatoire" (change)="basculerObligatoire()" />{{ i18n.t('placement.obligatoire') }}</label>
+            <button type="button" (click)="retirer()">{{ i18n.t('placement.retirer') }}</button>
+          </div>
+        }
+        <p aria-live="polite">{{ zones().length }} {{ i18n.t('placement.nombre') }}</p>
+      </section>
+    }
+    <section class="pages" [attr.aria-label]="i18n.t('document.pages')">
+      @for (page of pages(); track page.numero) {
+        <figure>
+          <div class="surface" [class.modifiable]="modifiable()" (click)="poser($event, page.numero)">
+            <canvas #toile aria-hidden="true"></canvas>
+            @for (z of indexees(); track z.rang) {
+              @if (z.zone.page === page.numero) {
+                <button type="button" class="zone" [class.choisie]="z.rang === choisie()" [attr.aria-pressed]="z.rang === choisie()"
+                        [attr.aria-label]="z.zone.libelle + ', ' + i18n.t('document.page') + ' ' + page.numero"
+                        [style.left.%]="z.zone.x * 100" [style.top.%]="z.zone.y * 100" [style.width.%]="z.zone.largeur * 100" [style.height.%]="z.zone.hauteur * 100"
+                        (focus)="choisie.set(z.rang)" (keydown)="touche($event)" (pointerdown)="saisir($event, z.rang, false)" (pointermove)="suivre($event)"
+                        (pointerup)="lacher()" (pointercancel)="lacher()">
+                  <span class="nom" aria-hidden="true">{{ z.zone.libelle }}</span>
+                  @if (modifiable()) { <span class="poignee" aria-hidden="true" (pointerdown)="saisir($event, z.rang, true)"></span> }
+                </button>
+              }
+            }
+          </div>
+          <figcaption>
+            <span>{{ i18n.t('document.page') }} {{ page.numero }} / {{ pages().length }}</span>
+            @if (modifiable()) {
+              <button type="button" (click)="ajouter(page.numero)">{{ i18n.t('placement.ajouter') }} {{ page.numero }}</button>
+            }
+          </figcaption>
+          <div class="texte-page">{{ page.texte }}</div>
+        </figure>
+      }
+    </section>
+  }
+}

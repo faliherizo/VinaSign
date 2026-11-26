@@ -1,0 +1,3 @@
+src
+target/*
+!target/vinasign-serveur-*.jar

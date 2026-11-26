@@ -1,0 +1,14 @@
+{
+  "name": "vinasign-securite",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tests d'intrusion automatisés de VinaSign : chaque opération de l'inventaire OpenAPI, éprouvée selon l'OWASP Top 10 ; INT-03, 05, 08, 09, 10 s'appuient sur l'outillage d'applications de bdd/ (npm ci dans bdd/ d'abord)",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test; node outils/rapport.mjs",
+    "rapport": "node outils/rapport.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
+}

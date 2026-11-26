@@ -1,0 +1,5 @@
+{
+  "comptes": {
+    "visiteur": { "mode": "anonyme", "description": "Personne non authentifiée (signataire avant l'ouverture de son lien, navigateur public)" }
+  }
+}

@@ -1,0 +1,13 @@
+environnement                = "integration"
+region                       = "canadacentral"
+zones                        = ["1"]
+plage_reseau                 = "10.60.0.0/16"
+version_kubernetes           = "1.31"
+taille_noeud                 = "Standard_D2s_v5"
+noeuds_min                   = 1
+noeuds_max                   = 3
+postgres_sku                 = "B_Standard_B2s"
+postgres_stockage_mo         = 32768
+postgres_haute_disponibilite = false
+retention_sauvegardes_jours  = 7
+retention_preuve_jours       = 1

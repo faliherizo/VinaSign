@@ -1,0 +1,9 @@
+<a class="evitement" href="#contenu">{{ i18n.t('evitement') }}</a>
+<header class="entete">
+  <vs-liste-referentiel [type]="configuration.referentielLangue" [valeur]="langues.langue()"
+                        (valeurChange)="langues.choisir($event)" [messageErreur]="i18n.t('langue.erreur')" />
+</header>
+<main id="contenu" tabindex="-1">
+  <h1>{{ i18n.t('titre') }}</h1>
+  <router-outlet />
+</main>

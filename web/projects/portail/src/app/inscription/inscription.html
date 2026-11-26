@@ -1,0 +1,36 @@
+<h1>{{ i18n.t('inscription.titre') }}</h1>
+@if (vue(); as v) {
+  @switch (v.etape) {
+    @case ('domaine-a-prouver') {
+      <section aria-labelledby="titre-dns">
+        <h2 id="titre-dns">{{ i18n.t('inscription.dnsTitre') }}</h2>
+        <p>{{ i18n.t('inscription.dnsExplication') }}</p>
+        <dl class="dns">
+          <dt>{{ i18n.t('inscription.dnsNom') }}</dt><dd><code>{{ v.enregistrementDns }}</code></dd>
+          <dt>{{ i18n.t('inscription.dnsType') }}</dt><dd><code>TXT</code></dd>
+          <dt>{{ i18n.t('inscription.dnsValeur') }}</dt><dd><code>{{ v.valeurDns }}</code></dd>
+        </dl>
+        <button type="button" class="principal" [disabled]="occupe()" (click)="prouverDomaine()">{{ i18n.t('inscription.dnsVerifier') }}</button>
+      </section>
+    }
+    @default {
+      <p role="status" class="bandeau">{{ i18n.t('inscription.etape.' + v.etape) }}</p>
+    }
+  }
+} @else if (envoyee()) {
+  <p role="status" class="bandeau">{{ i18n.t('inscription.envoyee') }}</p>
+} @else if (!jeton()) {
+  <p>{{ i18n.t('inscription.intro') }}</p>
+  <form (submit)="$event.preventDefault(); demander()">
+    <label for="organisation">{{ i18n.t('inscription.organisation') }}</label>
+    <input id="organisation" type="text" required maxlength="200" autocomplete="organization" [value]="organisation()"
+           (input)="organisation.set($any($event.target).value)" />
+    <label for="courriel">{{ i18n.t('inscription.courriel') }}</label>
+    <input id="courriel" type="email" required maxlength="320" autocomplete="email" [value]="courriel()" (input)="courriel.set($any($event.target).value)" />
+    <label for="domaine">{{ i18n.t('inscription.domaine') }}</label>
+    <input id="domaine" type="text" maxlength="253" aria-describedby="aide-domaine" [value]="domaine()" (input)="domaine.set($any($event.target).value)" />
+    <p id="aide-domaine" class="aide">{{ i18n.t('inscription.domaineAide') }}</p>
+    <button type="submit" class="principal" [disabled]="occupe() || !organisation().trim() || !courriel().trim()">{{ i18n.t('inscription.envoyer') }}</button>
+  </form>
+}
+<p aria-live="polite" class="message">{{ message() }}</p>

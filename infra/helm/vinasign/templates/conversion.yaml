@@ -1,0 +1,63 @@
+# Conversion bureautique → PDF/A (VS-035) : Gotenberg, non privilégié, sans aucun accès réseau sortant (un document
+# piégé ne peut rien appeler) ; seul le serveur VinaSign l'atteint.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vinasign-conversion
+  namespace: {{ .Release.Namespace }}
+  labels: { app.kubernetes.io/name: vinasign-conversion }
+spec:
+  replicas: {{ .Values.conversion.repliques }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: vinasign-conversion }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: vinasign-conversion }
+    spec:
+      automountServiceAccountToken: false
+      securityContext: { runAsNonRoot: true, runAsUser: 1001, runAsGroup: 1001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: conversion
+          image: {{ required "conversion.image est requise" .Values.conversion.image | quote }}
+          args: ["gotenberg", "--api-timeout={{ .Values.conversion.delai }}", "--chromium-disable-javascript=true"]
+          ports:
+            - { name: http, containerPort: 3000 }
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+          securityContext:
+            {{- include "vinasign.securiteConteneur" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.conversion.ressources | nindent 12 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: home, mountPath: /home/gotenberg }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        - { name: home, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vinasign-conversion
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector: { app.kubernetes.io/name: vinasign-conversion }
+  ports:
+    - { name: http, port: 80, targetPort: http }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: conversion-isolee
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: vinasign-conversion }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app.kubernetes.io/name: vinasign-serveur }
+      ports:
+        - { port: http }
+  egress: []

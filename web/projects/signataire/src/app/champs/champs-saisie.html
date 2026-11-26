@@ -1,0 +1,30 @@
+@if (aSaisir().length > 0) {
+  <fieldset class="champs">
+    <legend>{{ i18n.t('champs.legende') }}</legend>
+    <p class="aide">{{ i18n.t('champs.obligatoires') }}</p>
+    @for (champ of aSaisir(); track champ.id) {
+      <div class="champ">
+        @switch (saisie(champ)) {
+          @case ('case') {
+            <input type="checkbox" [id]="'champ-' + champ.id" [checked]="valeur(champ) === 'true'" [required]="champ.obligatoire"
+                   [attr.aria-invalid]="manquant(champ)" [attr.aria-describedby]="manquant(champ) ? 'erreur-' + champ.id : null"
+                   (change)="cocher(champ, $any($event.target).checked)" />
+            <label [for]="'champ-' + champ.id">{{ champ.libelle }}@if (champ.obligatoire) {<span aria-hidden="true"> *</span>}</label>
+          }
+          @default {
+            <label [for]="'champ-' + champ.id">{{ champ.libelle }}@if (champ.obligatoire) {<span aria-hidden="true"> *</span>}</label>
+            <input [type]="saisie(champ) === 'date' ? 'date' : 'text'" [id]="'champ-' + champ.id" [value]="valeur(champ)" maxlength="2000"
+                   [required]="champ.obligatoire" [attr.aria-invalid]="manquant(champ)"
+                   [attr.aria-describedby]="manquant(champ) ? 'erreur-' + champ.id : null" (input)="modifier(champ, $any($event.target).value)" />
+          }
+        }
+        @if (manquant(champ)) {
+          <p class="erreur" [id]="'erreur-' + champ.id">{{ i18n.t('champs.manquant') }}</p>
+        }
+      </div>
+    }
+  </fieldset>
+}
+@if (parSignature().length > 0) {
+  <p class="aide">{{ i18n.t('champs.parSignature') }}</p>
+}

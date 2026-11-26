@@ -1,0 +1,6 @@
+apiVersion: v2
+name: vinasign
+description: VinaSign — serveur, portail et interface du signataire (VS-003)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

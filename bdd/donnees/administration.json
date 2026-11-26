@@ -1,0 +1,568 @@
+{
+  "comptes": {
+    "administrateur-plateforme": {
+      "mode": "plateforme",
+      "description": "Administrateur de la plateforme VinaSign, créé par l'exploitation, authentifié par le fournisseur OIDC du portail avec MFA"
+    },
+    "application-webhooks": {
+      "mode": "application",
+      "description": "Application cliente qui gère ses destinations de webhooks (VS-091)",
+      "portees": [
+        "webhooks-gerer"
+      ]
+    }
+  },
+  "cas": {
+    "organisations.cycle": {
+      "description": "La plateforme crée une organisation et invite son administrateur ; celui-ci n'a son rôle qu'avec une MFA ; suspension et réactivation coupent puis rendent l'accès ; le plan se choisit dans le référentiel",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/role-portail",
+          "capturer": {
+            "preparateur": "$.valeurs[?code=preparateur].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/plan",
+          "capturer": {
+            "plan": "$.valeurs[1].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/organisations",
+          "statut": 201,
+          "corps": {
+            "nom": "Organisation BDD ${unique}"
+          },
+          "capturer": {
+            "org": "$.id"
+          },
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "active"
+            },
+            {
+              "chemin": "$.plan",
+              "existe": true
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/organisations/${org}/administrateurs",
+          "statut": 201,
+          "corps": {
+            "courriel": "admin-${unique}@exemple.ca"
+          }
+        },
+        {
+          "appel": "GET /api/v1/moi",
+          "personne": "admin-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$.organisation",
+              "egal": "${org}"
+            },
+            {
+              "chemin": "$.roles",
+              "inclut": "administrateur-organisation"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/moi",
+          "personne": "admin-${unique}@exemple.ca",
+          "sansMfa": true,
+          "verifier": [
+            {
+              "chemin": "$.roles",
+              "exclut": "administrateur-organisation"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/utilisateurs",
+          "personne": "admin-${unique}@exemple.ca",
+          "sansMfa": true,
+          "statut": 403
+        },
+        {
+          "appel": "POST /api/v1/utilisateurs",
+          "personne": "admin-${unique}@exemple.ca",
+          "statut": 201,
+          "corps": {
+            "courriel": "prep-${unique}@exemple.ca",
+            "roles": [
+              "${preparateur}"
+            ]
+          },
+          "capturer": {
+            "prep": "$.id"
+          }
+        },
+        {
+          "appel": "GET /api/v1/moi",
+          "personne": "prep-${unique}@exemple.ca",
+          "sansMfa": true,
+          "verifier": [
+            {
+              "chemin": "$.roles",
+              "inclut": "preparateur"
+            }
+          ]
+        },
+        {
+          "appel": "PUT /api/v1/utilisateurs/${prep}/roles",
+          "personne": "admin-${unique}@exemple.ca",
+          "statut": 422,
+          "corps": {
+            "roles": [
+              "administrateur-plateforme"
+            ]
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "role-non-attribuable"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/organisations/${org}/suspension",
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "suspendue"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/utilisateurs",
+          "personne": "admin-${unique}@exemple.ca",
+          "statut": 403,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "organisation-suspendue"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/organisations/${org}/reactivation",
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "active"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/utilisateurs",
+          "personne": "admin-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$",
+              "longueurMin": 2
+            }
+          ]
+        },
+        {
+          "appel": "PUT /api/v1/organisations/${org}/plan",
+          "corps": {
+            "plan": "${plan}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.plan",
+              "egal": "${plan}"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/utilisateurs/${prep}/desactivation",
+          "personne": "admin-${unique}@exemple.ca"
+        },
+        {
+          "appel": "GET /api/v1/moi",
+          "personne": "prep-${unique}@exemple.ca",
+          "statut": 401
+        }
+      ]
+    },
+    "applications.cycle": {
+      "description": "L'administrateur enregistre une application (JWKS vérifiée, origine https) ; elle obtient un jeton ; rotation à deux clés puis retrait de l'ancienne ; une clé ne sert qu'à une application ; la révocation refuse aussitôt le jeton déjà émis",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/environnement-application",
+          "capturer": {
+            "env": "$.valeurs[0].code"
+          }
+        },
+        {
+          "appel": "GET /api/v1/referentiels/portee-api",
+          "capturer": {
+            "portee": "$.valeurs[0].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/organisations",
+          "statut": 201,
+          "corps": {
+            "nom": "Organisation applications ${unique}"
+          },
+          "capturer": {
+            "org": "$.id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/organisations/${org}/administrateurs",
+          "statut": 201,
+          "corps": {
+            "courriel": "admin-app-${unique}@exemple.ca"
+          }
+        },
+        {
+          "appel": "POST /api/v1/applications",
+          "personne": "admin-app-${unique}@exemple.ca",
+          "statut": 400,
+          "corps": {
+            "nom": "RH",
+            "environnement": "${env}",
+            "jwks": "${jwks:a}",
+            "portees": [
+              "${portee}"
+            ],
+            "origines": [
+              "http://rh.exemple.ca"
+            ]
+          }
+        },
+        {
+          "appel": "POST /api/v1/applications",
+          "personne": "admin-app-${unique}@exemple.ca",
+          "statut": 201,
+          "corps": {
+            "nom": "RH",
+            "environnement": "${env}",
+            "jwks": "${jwks:a}",
+            "portees": [
+              "${portee}"
+            ],
+            "origines": [
+              "https://rh.exemple.ca"
+            ]
+          },
+          "capturer": {
+            "client": "$.clientId"
+          },
+          "verifier": [
+            {
+              "texteAbsent": "\"n\":"
+            }
+          ]
+        },
+        {
+          "jeton": {
+            "client": "${client}",
+            "cle": "a",
+            "capturer": "jetonA"
+          }
+        },
+        {
+          "appel": "GET /api/v1/jeton",
+          "anonyme": true,
+          "entetes": {
+            "Authorization": "Bearer ${jetonA}"
+          },
+          "verifier": [
+            {
+              "chemin": "$.organisation",
+              "egal": "${org}"
+            }
+          ]
+        },
+        {
+          "appel": "PUT /api/v1/applications/${client}/cles",
+          "personne": "admin-app-${unique}@exemple.ca",
+          "corps": {
+            "jwks": "${jwks:a+b}"
+          }
+        },
+        {
+          "jeton": {
+            "client": "${client}",
+            "cle": "a"
+          }
+        },
+        {
+          "jeton": {
+            "client": "${client}",
+            "cle": "b",
+            "capturer": "jetonB"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/applications/${client}/cles",
+          "personne": "admin-app-${unique}@exemple.ca",
+          "corps": {
+            "jwks": "${jwks:b}"
+          }
+        },
+        {
+          "jeton": {
+            "client": "${client}",
+            "cle": "a",
+            "statut": 401
+          }
+        },
+        {
+          "appel": "POST /api/v1/applications",
+          "personne": "admin-app-${unique}@exemple.ca",
+          "statut": 409,
+          "corps": {
+            "nom": "Copie",
+            "environnement": "${env}",
+            "jwks": "${jwks:b}",
+            "portees": []
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "cle-deja-enregistree"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/applications/${client}/revocation",
+          "personne": "admin-app-${unique}@exemple.ca",
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "revoquee"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/jeton",
+          "anonyme": true,
+          "entetes": {
+            "Authorization": "Bearer ${jetonB}"
+          },
+          "statut": 403,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "application-revoquee"
+            }
+          ]
+        },
+        {
+          "jeton": {
+            "client": "${client}",
+            "cle": "b",
+            "statut": 401
+          }
+        }
+      ]
+    },
+    "integration.webhooks": {
+      "description": "L'application déclare une destination de webhooks HTTPS : le secret de signature n'est remis qu'une fois ; une adresse interne ou un événement inconnu est refusé ; la destination se retire",
+      "profil": "application-webhooks",
+      "etapes": [
+        {
+          "appel": "POST /api/v1/webhooks",
+          "statut": 201,
+          "corps": {
+            "url": "https://203.0.113.10/vinasign/recepteur-${unique}",
+            "evenements": [
+              "envelope.completed",
+              "signer.declined"
+            ]
+          },
+          "capturer": {
+            "destination": "$.id"
+          },
+          "verifier": [
+            {
+              "chemin": "$.secret",
+              "existe": true
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/webhooks",
+          "verifier": [
+            {
+              "chemin": "$[0].url",
+              "contient": "recepteur-${unique}"
+            },
+            {
+              "texteAbsent": "secret"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/webhooks",
+          "statut": 422,
+          "corps": {
+            "url": "https://169.254.169.254/latest/meta-data"
+          },
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "destination-webhook-invalide"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/webhooks",
+          "statut": 422,
+          "corps": {
+            "url": "http://recepteur-${unique}.exemple.ca/h"
+          },
+          "note": "HTTPS exigé"
+        },
+        {
+          "appel": "POST /api/v1/webhooks",
+          "statut": 422,
+          "corps": {
+            "url": "https://recepteur-${unique}.exemple.ca/h",
+            "evenements": [
+              "evenement.inconnu"
+            ]
+          }
+        },
+        {
+          "appel": "GET /api/v1/webhooks/${destination}/deliveries",
+          "verifier": [
+            {
+              "texteAbsent": "livreLe"
+            }
+          ]
+        },
+        {
+          "appel": "DELETE /api/v1/webhooks/${destination}",
+          "statut": 204
+        },
+        {
+          "appel": "DELETE /api/v1/webhooks/${destination}",
+          "statut": 404
+        }
+      ]
+    },
+    "integration.consommation": {
+      "description": "L'organisation suit sa consommation : une enveloppe envoyée compte une fois, au mois de son premier envoi ; une enveloppe annulée avant envoi ne compte pas ; le relevé s'exporte en CSV",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "POST /api/v1/envelopes",
+          "entetes": {
+            "Idempotency-Key": "bdd-conso-${unique}"
+          },
+          "statut": 201,
+          "corps": {
+            "externalReference": "BDD-CONSO-${unique}",
+            "mode": "empreinte",
+            "expiresAt": "${dansUnMois}T12:00:00Z"
+          },
+          "capturer": {
+            "id": "$.id"
+          }
+        },
+        {
+          "appel": "PUT /api/v1/envelopes/${id}/signers",
+          "corps": [
+            {
+              "nom": "Alice",
+              "courriel": "conso-${unique}@exemple.ca",
+              "langue": "fr",
+              "type": "invite",
+              "ordre": 1
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/envelopes/${id}/send"
+        },
+        {
+          "appel": "GET /api/v1/usage?du=${aujourdhui}&au=${aujourdhui}",
+          "verifier": [
+            {
+              "chemin": "$.envoyees",
+              "existe": true
+            },
+            {
+              "chemin": "$.parMois",
+              "existe": true
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/usage.csv?du=${aujourdhui}&au=${aujourdhui}",
+          "verifier": [
+            {
+              "texteContient": "mois,enveloppes"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/usage?du=${demain}&au=${aujourdhui}",
+          "statut": 422,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "periode-invalide"
+            }
+          ]
+        }
+      ]
+    },
+    "acces.bac-a-sable": {
+      "description": "Sur la plateforme de bac à sable, l'intégrateur repart d'une organisation vide ; rien n'est effacé",
+      "profil": "application",
+      "etapes": [
+        {
+          "appel": "POST /api/v1/sandbox/reset",
+          "verifier": [
+            {
+              "chemin": "$.organisation",
+              "existe": true
+            }
+          ]
+        }
+      ]
+    },
+    "organisation.inscription": {
+      "description": "Les étapes du demandeur sont authentifiées par le jeton reçu par courriel : un jeton inconnu ne révèle rien ; la validation appartient à l'administrateur de la plateforme",
+      "profil": "visiteur",
+      "etapes": [
+        {
+          "appel": "POST /api/v1/signup/consultation",
+          "corps": {
+            "jeton": "inconnu-${unique}"
+          },
+          "statut": 404,
+          "verifier": [
+            {
+              "chemin": "$.type",
+              "contient": "inscription-introuvable"
+            }
+          ]
+        },
+        {
+          "appel": "POST /api/v1/signup/domain-verification",
+          "corps": {
+            "jeton": "inconnu-${unique}"
+          },
+          "statut": 404
+        },
+        {
+          "appel": "GET /api/v1/platform/signups",
+          "statut": 401
+        }
+      ]
+    }
+  }
+}
