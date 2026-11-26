@@ -8,6 +8,8 @@ d'empreinte, cachet PAdES-B-LTA, horodatage RFC 3161, dossier de preuve vérifia
 - Backlog : [docs/architecture/05-Backlog-et-stories.md](docs/architecture/05-Backlog-et-stories.md)
 - Règles de travail : [CLAUDE.md](CLAUDE.md)
 - Chaîne complète : `./ci.sh`
+- Démonstration (comptes, tutoriel, vidéo) : [docs/guides/demonstration.md](docs/guides/demonstration.md)
+- Exploitation de la démonstration OVH : [docs/exploitation/deploiement-ovh.md](docs/exploitation/deploiement-ovh.md)
 
 ## Démarrer
 

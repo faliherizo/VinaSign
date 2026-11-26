@@ -17,6 +17,8 @@ SAUVEGARDES="$HOME/sauvegardes/vinasign"
 DELAI_SANTE_S=420
 [ -f .env.vinasign ] || { echo "❌ deploy/ovh/.env.vinasign absent — lancer deploy/ovh/preparer-serveur.sh"; exit 2; }
 [ -f secrets/jetons.pem ] || { echo "❌ secrets/jetons.pem absent — lancer deploy/ovh/preparer-serveur.sh"; exit 2; }
+# Médias de la vitrine : le dossier existe toujours (vide tant que la vidéo n'est pas publiée : la vitrine le dit alors).
+mkdir -p medias
 PRECEDENTE="$(cat .version-courante 2>/dev/null || true)"
 if [ "${1:-}" = "--retour-arriere" ]; then
   VERSION="$(cat .version-precedente 2>/dev/null || true)"; [ -n "$VERSION" ] || { echo "❌ aucune version précédente"; exit 2; }

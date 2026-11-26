@@ -140,7 +140,8 @@ services:
       VINASIGN_API_URL: http://vinasign-serveur:8300
       VINASIGN_ANCETRES_AUTORISES: "'none'"
       VINASIGN_FOURNISSEUR_IDENTITE: https://id.vinasign.vinaitsolution.com
-    volumes: ["./config/portail.json:/usr/share/nginx/html/config.json:ro"]
+    # Médias de la vitrine (vidéo de démonstration, sous-titres, affiche), publiés par bdd/outils/video.mjs publier.
+    volumes: ["./config/portail.json:/usr/share/nginx/html/config.json:ro", "./medias:/usr/share/nginx/html/medias:ro"]
     read_only: true
     # Racine en lecture seule : nginx (uid 101) écrit sa configuration générée et son cache dans ces tmpfs, qui lui appartiennent.
     tmpfs: ["/tmp:uid=101,gid=101", "/etc/nginx/conf.d:uid=101,gid=101", "/var/cache/nginx:uid=101,gid=101"]

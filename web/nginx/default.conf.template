@@ -52,6 +52,14 @@ server {
     try_files $uri =404;
   }
 
+  # Sous-titres de la démonstration : text/vtt, sinon nosniff fait refuser la piste par le navigateur. Les médias
+  # (deploy/ovh/medias) sont montés à part, en lecture seule, et peuvent être mis en cache.
+  location ~ \.vtt$ {
+    types { text/vtt vtt; }
+    add_header Cache-Control "public, max-age=3600" always;
+    try_files $uri =404;
+  }
+
   # Exécuteur PDF.js (module) : servi en JavaScript, sinon nosniff le fait refuser par le navigateur.
   location ~ \.mjs$ {
     types { text/javascript mjs; }

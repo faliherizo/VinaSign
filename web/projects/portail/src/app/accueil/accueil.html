@@ -1,0 +1,59 @@
+<section class="hero" aria-labelledby="accueil-titre">
+  <p class="surtitre">{{ i18n.t('accueil.surtitre') }}</p>
+  <h1 id="accueil-titre">{{ i18n.t('accueil.titre') }}</h1>
+  <p class="intro">{{ i18n.t('accueil.intro') }}</p>
+  <div class="actions">
+    @if (session.utilisateur()) {
+      <a class="principal" routerLink="/enveloppes">{{ i18n.t('accueil.mesEnveloppes') }}</a>
+    } @else if (session.estOfferte) {
+      <button type="button" class="principal" (click)="connecter()">{{ i18n.t('accueil.connecter') }}</button>
+    }
+    <a class="secondaire" href="#demonstration">{{ i18n.t('accueil.voirDemo') }}</a>
+  </div>
+</section>
+
+<section id="demonstration" class="demo" aria-labelledby="demo-titre">
+  <h2 id="demo-titre">{{ i18n.t('accueil.demo.titre') }}</h2>
+  <p>{{ i18n.t('accueil.demo.intro') }}</p>
+  @if (videoIndisponible()) {
+    <p class="indisponible" role="status">{{ i18n.t('accueil.demo.indisponible') }}</p>
+  } @else {
+    <video controls preload="metadata" playsinline [poster]="affiche" (error)="videoIndisponible.set(true)" aria-describedby="demo-transcription">
+      <source [src]="video" type="video/mp4" (error)="videoIndisponible.set(true)" />
+      <track kind="captions" srclang="fr" [label]="i18n.t('accueil.demo.sousTitres')" [src]="sousTitres" default />
+    </video>
+  }
+  <details id="demo-transcription">
+    <summary>{{ i18n.t('accueil.demo.transcription') }}</summary>
+    <ol>
+      @for (e of etapes; track e) { <li>{{ i18n.t('accueil.etape.' + e + '.texte') }}</li> }
+    </ol>
+  </details>
+</section>
+
+<section class="etapes" aria-labelledby="etapes-titre">
+  <h2 id="etapes-titre">{{ i18n.t('accueil.etapes.titre') }}</h2>
+  <ol>
+    @for (e of etapes; track e; let i = $index) {
+      <li><span class="numero" aria-hidden="true">{{ i + 1 }}</span>
+        <h3>{{ i18n.t('accueil.etape.' + e + '.titre') }}</h3><p>{{ i18n.t('accueil.etape.' + e + '.texte') }}</p></li>
+    }
+  </ol>
+</section>
+
+<section class="atouts" aria-labelledby="atouts-titre">
+  <h2 id="atouts-titre">{{ i18n.t('accueil.atouts.titre') }}</h2>
+  <ul>
+    @for (a of atouts; track a) {
+      <li><h3>{{ i18n.t('accueil.atout.' + a + '.titre') }}</h3><p>{{ i18n.t('accueil.atout.' + a + '.texte') }}</p></li>
+    }
+  </ul>
+</section>
+
+<section class="appel" aria-labelledby="appel-titre">
+  <h2 id="appel-titre">{{ i18n.t('accueil.appel.titre') }}</h2>
+  <p>{{ i18n.t('accueil.appel.texte') }}</p>
+  <a class="principal" routerLink="/inscription">{{ i18n.t('accueil.appel.inscription') }}</a>
+</section>
+
+<p class="avis">{{ i18n.t('accueil.avis') }}</p>

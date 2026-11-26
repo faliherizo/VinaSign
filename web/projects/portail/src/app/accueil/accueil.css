@@ -1,0 +1,31 @@
+:host { display: block; max-width: 72rem; margin: 0 auto; }
+section { margin: 0 0 3rem; }
+h2 { font-size: clamp(1.35rem, 2.5vw, 1.75rem); margin: 0 0 .75rem; }
+h3 { font-size: 1.05rem; margin: 0 0 .35rem; }
+p { margin: 0 0 .75rem; }
+.hero { padding: clamp(1.5rem, 5vw, 3.5rem) clamp(1rem, 4vw, 3rem); border-radius: 1rem; color: #fff;
+  background: linear-gradient(135deg, #0b3d6b, #145da0); }
+.surtitre { letter-spacing: .18em; text-transform: uppercase; font-size: .85rem; color: #d3e4f5; }
+.hero h1 { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; margin: 0 0 1rem; max-width: 22ch; }
+.intro { font-size: clamp(1rem, 2vw, 1.2rem); max-width: 60ch; color: #eef5fc; }
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+.principal, .secondaire { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 1.4rem;
+  border-radius: .5rem; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.principal { background: #fff; color: #0b3d6b; border: 2px solid #fff; }
+.secondaire { color: #fff; border: 2px solid #fff; background: transparent; }
+.appel .principal { background: #0b3d6b; color: #fff; border-color: #0b3d6b; }
+.hero :focus-visible { outline-color: #fff; }
+.demo video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: .75rem; background: #0b1d2e; }
+.indisponible { padding: 1rem; border: 1px dashed var(--bordure, #6b7280); border-radius: .5rem; }
+details { margin-top: .75rem; } summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.etapes ol, .atouts ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.etapes li, .atouts li { border: 1px solid var(--bordure, #6b7280); border-radius: .75rem; padding: 1.1rem; min-width: 0; }
+.numero { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border-radius: 50%;
+  background: #145da0; color: #fff; font-weight: 700; margin-bottom: .6rem; }
+.appel { text-align: center; padding: 2rem 1rem; border-radius: 1rem; background: rgb(20 93 160 / 8%); }
+.avis { font-size: .9rem; border-top: 1px solid var(--bordure, #6b7280); padding-top: 1rem; }
+@media (prefers-color-scheme: dark) {
+  .appel .principal { background: #8cc4ff; color: #0b1d2e; border-color: #8cc4ff; }
+  .numero { background: #8cc4ff; color: #0b1d2e; }
+}

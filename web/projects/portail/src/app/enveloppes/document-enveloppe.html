@@ -8,7 +8,9 @@
     <p>{{ i18n.t('document.nature.' + nature()) }}</p>
     <a class="action" [href]="lien()" [attr.download]="enveloppe()!.referenceExterne + '.pdf'">{{ i18n.t('document.telecharger') }}</a>
   </div>
-  <app-placement-zones [donnees]="d" [signataires]="enveloppe()!.signataires" [types]="types()" [modifiable]="modifiable()" [(zones)]="zones" />
+  <!-- Le document final porte les signatures elles-mêmes : les cadres des zones n'y sont plus dessinés. -->
+  <app-placement-zones [donnees]="d" [signataires]="enveloppe()!.signataires" [types]="types()" [modifiable]="modifiable()"
+                       [zones]="nature() === 'final' ? [] : zones()" (zonesChange)="zones.set($event)" />
   @if (modifiable()) {
     <div class="titre">
       <button type="button" (click)="enregistrer()" [disabled]="occupe()">{{ i18n.t('placement.enregistrer') }}</button>

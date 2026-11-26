@@ -85,6 +85,7 @@ describe('DocumentEnveloppe (écran)', () => {
     expect(el.textContent).toContain('document.nature.final');
     expect(el.querySelector('a[download]')!.getAttribute('download')).toBe('DOSSIER-1.pdf');
     expect(el.querySelector('a[download]')!.getAttribute('href')).toMatch(/^blob:/);
+    expect(el.querySelectorAll('.zone').length).withContext('les signatures se voient, sans cadre par-dessus').toBe(0);
     expect(bouton('envoi.envoyer')).toBeUndefined();
     f.destroy();
   });

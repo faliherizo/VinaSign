@@ -34,3 +34,6 @@ replay_pid*.log
 *.tfstate.*
 *.tfplan
 crash.log
+# Vidéo de démonstration copiée pour le serveur de développement (publiée sur le serveur, jamais versionnée)
+web/projects/portail/public/medias/
+deploy/ovh/medias/

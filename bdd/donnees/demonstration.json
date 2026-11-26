@@ -1,0 +1,190 @@
+{
+  "description": "Démonstration filmée de VinaSign (bdd/demo/demonstration.spec.ts) : un vrai contrat PDF de deux pages, préparé au portail, signé à la main puis au clavier, scellé et horodaté. Chaque étape est aussi une vérification : la vidéo ne montre que ce que le test a constaté.",
+  "film": {
+    "titre": "VinaSign — signer un contrat électroniquement, de bout en bout",
+    "document": "fichiers/contrat-services.pdf",
+    "reference": "CS-2026-0142-${UNIQUE}",
+    "preparatrice": {
+      "courriel": "approvisionnement-${unique}@riviere-claire.exemple",
+      "nom": "Approvisionnement de Rivière-Claire"
+    },
+    "signataires": [
+      {
+        "nom": "Léa Fortin",
+        "courriel": "lea.fortin-${unique}@riviere-claire.exemple",
+        "mode": "dessin"
+      },
+      {
+        "nom": "Jean Tremblay",
+        "courriel": "jean.tremblay-${unique}@boreal.exemple",
+        "mode": "clavier"
+      }
+    ],
+    "zones": [
+      {
+        "signataire": "Léa Fortin",
+        "type": "Initiales",
+        "page": 1,
+        "x": 0.8,
+        "y": 0.9
+      },
+      {
+        "signataire": "Léa Fortin",
+        "type": "Signature",
+        "page": 2,
+        "x": 0.25,
+        "y": 0.49
+      },
+      {
+        "signataire": "Jean Tremblay",
+        "type": "Signature",
+        "page": 2,
+        "x": 0.68,
+        "y": 0.49
+      }
+    ]
+  },
+  "narration": {
+    "accueil": "Voici VinaSign, la plateforme de signature électronique opérée par Vina I T Solution.",
+    "connexion": "La préparatrice de la municipalité se connecte avec le compte de son organisation.",
+    "nouvelle": "Elle crée une enveloppe : une référence, une date limite, et le vrai contrat à faire signer, en P D F.",
+    "signataires": "Deux signataires, dans l'ordre : la directrice de l'approvisionnement, puis le président du prestataire.",
+    "visualisation": "Le contrat s'affiche page par page, tel qu'il sera signé.",
+    "zones": "Elle place les zones là où chacun doit signer : les initiales en bas de la première page, les deux signatures sur la ligne prévue.",
+    "envoi": "Elle envoie. Seule la première signataire est invitée ; le second le sera à son tour.",
+    "courriel": "La signataire reçoit un lien personnel par courriel.",
+    "consentement": "Elle consent à signer électroniquement, puis lit le contrat. Ses zones y sont repérées.",
+    "dessin": "Elle signe à la main, au doigt, au stylet ou à la souris. Ses initiales sont apposées par le même geste.",
+    "second": "Le président du prestataire est invité à son tour. Il signe en tapant son nom : c'est l'alternative au clavier.",
+    "final": "Les deux signatures recueillies, la plateforme scelle le document et le fait horodater par une autorité : il ne peut plus être modifié sans que cela se voie.",
+    "resultat": "Le document final porte les initiales et les deux signatures, à l'endroit prévu. N'importe qui peut le vérifier, sans compte.",
+    "fin": "Préparer, signer, sceller et prouver : c'est VinaSign."
+  },
+  "cas": {
+    "demo.preparatrice": {
+      "description": "Organisation de la démonstration et sa préparatrice (préparatrice et auditrice), comme pour tout client",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/referentiels/role-portail",
+          "capturer": {
+            "preparateur": "$.valeurs[?code=preparateur].code",
+            "auditeur": "$.valeurs[?code=auditeur].code"
+          }
+        },
+        {
+          "appel": "POST /api/v1/organisations",
+          "statut": 201,
+          "corps": {
+            "nom": "Municipalité de Rivière-Claire"
+          },
+          "capturer": {
+            "org": "$.id"
+          }
+        },
+        {
+          "appel": "POST /api/v1/organisations/${org}/administrateurs",
+          "statut": 201,
+          "corps": {
+            "courriel": "admin-${unique}@riviere-claire.exemple"
+          }
+        },
+        {
+          "appel": "POST /api/v1/utilisateurs",
+          "personne": "admin-${unique}@riviere-claire.exemple",
+          "statut": 201,
+          "corps": {
+            "courriel": "approvisionnement-${unique}@riviere-claire.exemple",
+            "roles": [
+              "${preparateur}",
+              "${auditeur}"
+            ]
+          }
+        }
+      ]
+    },
+    "demo.lien-lea": {
+      "description": "Lien personnel de la première signataire, reçu par courriel",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "courriel": {
+            "destinataire": "lea.fortin-${unique}@riviere-claire.exemple",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
+    },
+    "demo.lien-jean": {
+      "description": "Le second signataire n'est invité qu'après la première : son lien arrive ensuite",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "courriel": {
+            "destinataire": "jean.tremblay-${unique}@boreal.exemple",
+            "motif": "/s/([A-Za-z0-9_-]{40,})",
+            "capturer": "lien"
+          }
+        }
+      ]
+    },
+    "demo.scelle": {
+      "description": "Le document final est scellé PAdES-B-LTA et horodaté ; la vérification publique le dit intègre",
+      "profil": "administrateur-plateforme",
+      "etapes": [
+        {
+          "appel": "GET /api/v1/envelopes?limite=1",
+          "personne": "approvisionnement-${unique}@riviere-claire.exemple",
+          "capturer": {
+            "id": "$.elements[0].id"
+          }
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}",
+          "personne": "approvisionnement-${unique}@riviere-claire.exemple",
+          "attendre": 90,
+          "verifier": [
+            {
+              "chemin": "$.statut",
+              "egal": "terminee"
+            }
+          ]
+        },
+        {
+          "appel": "GET /api/v1/envelopes/${id}/documents/final",
+          "personne": "approvisionnement-${unique}@riviere-claire.exemple",
+          "conserver": "final"
+        },
+        {
+          "appel": "POST /api/v1/verifications",
+          "anonyme": true,
+          "binaire": {
+            "contenu": "fichier:final",
+            "type": "application/pdf"
+          },
+          "verifier": [
+            {
+              "chemin": "$.integre",
+              "egal": true
+            },
+            {
+              "chemin": "$.niveau",
+              "egal": "PAdES-B-LTA"
+            },
+            {
+              "chemin": "$.signatures[0].horodatage",
+              "existe": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "ecrans": {
+    "Portail — vitrine": {
+      "chemin": "/",
+      "titre": "Faites signer vos contrats|Get your contracts signed"
+    }
+  }
+}
