@@ -4,6 +4,9 @@
 # rangé dans secrets/comptes-demo.txt (600) ; à la première connexion, il enrôle son code à usage unique (TOTP).
 # Les organisations se créent ensuite par l'inscription du portail ; leurs utilisateurs, par leur administrateur.
 set -euo pipefail
+# Sous pipefail, « commande | grep -q » est faux au hasard : grep -q ferme le tube au premier résultat et la commande
+# reçoit SIGPIPE. La sortie est donc lue entière, puis cherchée.
+contient() { grep -q -- "$2" <<< "$1"; }
 ICI="$(cd "$(dirname "$0")" && pwd)"
 valeur() { grep -E "^$1=" "$ICI/.env.vinasign" | cut -d= -f2-; }
 COURRIEL=plateforme@vinasign.vinaitsolution.com
@@ -13,7 +16,7 @@ printf "INSERT INTO utilisateur_portail (id, courriel, roles) SELECT gen_random_
         WHERE NOT EXISTS (SELECT 1 FROM utilisateur_portail WHERE courriel = '%s');\n" "$COURRIEL" "$COURRIEL" \
   | docker exec -i vinasign-db psql -q -U "$(valeur VINASIGN_DB_UTILISATEUR)" -d vinasign
 
-if ! kc get users -r vinasign -q email=$COURRIEL --fields id | grep -q '"id"'; then
+if ! contient "$(kc get users -r vinasign -q email=$COURRIEL --fields id)" '"id"'; then
   kc create users -r vinasign -s username=$COURRIEL -s email=$COURRIEL -s emailVerified=true -s enabled=true \
     -s firstName=Administration -s lastName=Plateforme >/dev/null
   m="$(openssl rand -base64 24 | tr -d '\n/+=' | cut -c1-20)"
@@ -37,7 +40,7 @@ fi
 compte() { # $1 courriel, $2 prénom, $3 nom, $4 rôles (tableau SQL), $5 libellé
   printf "INSERT INTO utilisateur_portail (id, tenant_id, courriel, roles) SELECT gen_random_uuid(), '%s', '%s', %s
           WHERE NOT EXISTS (SELECT 1 FROM utilisateur_portail WHERE courriel = '%s');\n" "$ORG" "$1" "$4" "$1" | sql
-  kc get users -r vinasign -q email="$1" --fields id | grep -q '"id"' && return 0
+  contient "$(kc get users -r vinasign -q email="$1" --fields id)" '"id"' && return 0
   kc create users -r vinasign -s username="$1" -s email="$1" -s emailVerified=true -s enabled=true -s firstName="$2" -s lastName="$3" >/dev/null
   local m; m="$(openssl rand -base64 24 | tr -d '\n/+=' | cut -c1-20)"
   docker exec -e MDP="$m" vinasign-keycloak sh -c '/opt/keycloak/bin/kcadm.sh set-password -r vinasign --username '"$1"' --new-password "$MDP" --temporary' >/dev/null

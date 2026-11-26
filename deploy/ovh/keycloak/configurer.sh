@@ -5,6 +5,9 @@
 # référence posée sur le formulaire de mot de passe et sur celui du code) : jamais une valeur fixe. Tout compte enrôle un
 # code à usage unique (TOTP) à sa première connexion.
 set -euo pipefail
+# Sous pipefail, « commande | grep -q » est faux au hasard : grep -q ferme le tube au premier résultat et la commande
+# reçoit SIGPIPE. La sortie est donc lue entière, puis cherchée.
+contient() { grep -q -- "$2" <<< "$1"; }
 ICI="$(cd "$(dirname "$0")/.." && pwd)"
 valeur() { grep -E "^$1=" "$ICI/.env.vinasign" | cut -d= -f2-; }
 PORTAIL=https://vinasign.vinaitsolution.com
@@ -30,7 +33,7 @@ kc update "authentication/required-actions/CONFIGURE_TOTP" -r $R -s enabled=true
 
 # Parcours de connexion : copie du parcours « browser », références AMR sur mot de passe (pwd) et code (otp).
 FLUX=navigateur-vinasign
-kc get "authentication/flows" -r $R --fields alias 2>/dev/null | grep -q "\"$FLUX\"" \
+contient "$(kc get "authentication/flows" -r $R --fields alias 2>/dev/null)" "\"$FLUX\"" \
   || kc create "authentication/flows/browser/copy" -r $R -s newName=$FLUX >/dev/null
 reference() { # $1 fournisseur, $2 alias, $3 valeur amr
   local ex; ex="$(kc get "authentication/flows/$FLUX/executions" -r $R | python3 -c "
@@ -47,7 +50,7 @@ reference auth-otp-form amr-otp otp
 kc update "realms/$R" -s browserFlow=$FLUX
 
 # Client du portail : public, code d'autorisation avec PKCE S256, aucune autre méthode.
-if ! kc get clients -r $R -q clientId=vinasign-portail --fields id | grep -q '"id"'; then
+if ! contient "$(kc get clients -r $R -q clientId=vinasign-portail --fields id)" '"id"'; then
   kc create clients -r $R -s clientId=vinasign-portail -s name="Portail VinaSign" -s publicClient=true >/dev/null
 fi
 CLIENT="$(kc get clients -r $R -q clientId=vinasign-portail --fields id | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["id"])')"
@@ -56,7 +59,7 @@ kc update "clients/$CLIENT" -r $R -s publicClient=true -s standardFlowEnabled=tr
   -s "redirectUris=[\"$PORTAIL/connexion/retour\",\"$PORTAIL/connexion-silencieuse.html\"]" -s "webOrigins=[\"$PORTAIL\"]" \
   -s 'attributes."pkce.code.challenge.method"=S256' -s "attributes.\"post.logout.redirect.uris\"=$PORTAIL/"
 mappeur() { # $1 nom, puis réglages
-  kc get "clients/$CLIENT/protocol-mappers/models" -r $R --fields name | grep -q "\"$1\"" && return 0
+  contient "$(kc get "clients/$CLIENT/protocol-mappers/models" -r $R --fields name)" "\"$1\"" && return 0
   kc create "clients/$CLIENT/protocol-mappers/models" -r $R -s name="$1" -s protocol=openid-connect "${@:2}" >/dev/null
 }
 mappeur amr -s protocolMapper=oidc-amr-mapper -s 'config."access.token.claim"=true' -s 'config."id.token.claim"=true' \
