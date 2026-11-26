@@ -27,7 +27,7 @@
         <pdfbox.version>2.0.31</pdfbox.version>
         <azure-storage-blob.version>12.29.1</azure-storage-blob.version>
         <azure-identity.version>1.15.4</azure-identity.version>
-        <azure-keyvault-keys.version>4.10.0</azure-keyvault-keys.version>
+        <azure-keyvault-keys.version>4.10.6</azure-keyvault-keys.version>
         <lowkey-vault.version>3.1.31</lowkey-vault.version>
         <bouncycastle.version>1.86</bouncycastle.version>
         <!-- Seuils bloquants (CLAUDE.md) : la construction échoue sous ces valeurs, ou si la couverture baisse. -->

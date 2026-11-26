@@ -99,16 +99,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Image officielle épinglée plutôt que l'action tierce (ses étiquettes ont été retirées du dépôt amont).
       - name: Trivy (dépendances, secrets, configuration Terraform et Helm)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scanners: vuln,secret,misconfig
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: '1'
-          skip-dirs: infra/bacs-a-sable,securite/resultats
-          trivyignores: securite/donnees/.trivyignore
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src aquasec/trivy:0.58.1 fs --scanners vuln,secret,misconfig \
+            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress \
+            --skip-dirs infra/bacs-a-sable --skip-dirs securite/resultats --ignorefile securite/donnees/.trivyignore .
 
   infrastructure:
     runs-on: ubuntu-latest
