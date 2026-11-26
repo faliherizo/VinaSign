@@ -30,7 +30,8 @@ sql() { docker exec -i vinasign-db psql -qtA -U "$(valeur VINASIGN_DB_UTILISATEU
 ORG="$(printf "SELECT id FROM organisation WHERE nom = '%s';\n" "$ORG_NOM" | sql)"
 if [ -z "$ORG" ]; then
   PLAN="$(printf "SELECT v.code FROM referentiel_valeur v JOIN referentiel_type t ON t.id = v.type_id WHERE t.code = 'plan' AND v.tenant_id IS NULL ORDER BY v.ordre LIMIT 1;\n" | sql)"
-  ORG="$(printf "INSERT INTO organisation (id, nom, statut, plan, cree_le, modifie_le) VALUES (gen_random_uuid(), '%s', 'active', '%s', now(), now()) RETURNING id;\n" "$ORG_NOM" "$PLAN" | sql | head -1)"
+  ORG="$(printf "INSERT INTO organisation (id, nom, statut, plan, cree_le, modifie_le) VALUES (gen_random_uuid(), '%s', 'active', '%s', now(), now()) RETURNING id;\n" "$ORG_NOM" "$PLAN" | sql)"
+  # psql -q ne rend que l'identifiant : pas de « head », qui fermerait le tube et ferait échouer le script (pipefail).
   echo "✓ organisation de démonstration créée"
 fi
 compte() { # $1 courriel, $2 prénom, $3 nom, $4 rôles (tableau SQL), $5 libellé
