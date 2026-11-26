@@ -58,7 +58,9 @@ en_sante() {
   return 1
 }
 demarrer() {
-  composer "$1" up -d base stockage conversion icp courriel keycloak
+  # Compose interpole tout le fichier, serveur compris : ses deux secrets reçoivent ici une valeur d'attente, sans effet
+  # sur les services démarrés dans cette première phase (le serveur n'en fait pas partie).
+  VINASIGN_CACHET_MOT_DE_PASSE=attente VINASIGN_JETONS_CLE_PRIVEE=attente composer "$1" up -d base stockage conversion icp courriel keycloak
   local fin=$((SECONDS + 180)); until sain vinasign-icp; do [ $SECONDS -lt $fin ] || { echo "❌ ICP non prête"; return 1; }; sleep 3; done
   VINASIGN_CACHET_MOT_DE_PASSE="$(docker exec vinasign-icp cat /etat/mot-de-passe.txt)" \
   VINASIGN_JETONS_CLE_PRIVEE="$(cat secrets/jetons.pem)" composer "$1" up -d --remove-orphans
