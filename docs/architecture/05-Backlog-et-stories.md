@@ -190,3 +190,9 @@
 | VS-133 | En tant que client entreprise, je veux apporter ma propre clé | Clé de données de l'organisation dans son Key Vault ; révocation = données illisibles | C | 8 | N |
 | VS-134 | En tant que client entreprise, je veux une instance dédiée | Même code ; déploiement isolé par Terraform ; procédure de mise à jour | C | 8 | D2 E15-14 |
 | VS-135 | En tant que direction, je veux SOC 2 Type II puis ISO 27001 | Période d'observation ; audit externe | C | 5 | N |
+
+## Dette de sécurité
+
+| ID | Story | Critères d'acceptation clés | P | Pts | Sprint | Origine |
+|---|---|---|---|---:|---|---|
+| VS-140 | En tant qu'exploitant, je veux le serveur sur Spring Boot 4 (Spring Framework 7) | CVE-2026-47884 et -47890 corrigées sans exemption ; exemption de securite/donnees/.trivyignore retirée avant le 2027-01-31 ; toutes les portes vertes | M | 8 | — | Trivy 2026-11-26 |

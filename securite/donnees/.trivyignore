@@ -1,2 +1,11 @@
 # Constats Trivy acceptés : un identifiant par ligne, précédé de sa justification et de la décision de risque.
-# Aucun constat n'est accepté à ce jour.
+#
+# 2026-11-26 — spring-webmvc 6.2.19 (Spring Boot 3.5.16) : corrigés seulement dans Spring Framework 7.0.9 (Spring Boot 4) ;
+# la branche 6.2 ne reçoit plus ce correctif. Ni l'une ni l'autre n'est atteignable dans VinaSign, vérifié dans le code :
+# aucun rendu de vue (pas de XsltView, ViewResolver, ModelAndView ni moteur de gabarits dans l'artefact), aucun
+# Server-Sent Events ; 31 contrôleurs, tous @RestController en JSON.
+# Décision : exemption datée, le temps de migrer vers Spring Boot 4 (backlog VS-140). À l'échéance, la porte rebloque.
+#   - RCE/SSRF par XsltView avec un mappage « /** » rendant une vue au nom implicite.
+CVE-2026-47884 exp:2027-01-31
+#   - Corruption de flux SSE avec fragments de vue.
+CVE-2026-47890 exp:2027-01-31

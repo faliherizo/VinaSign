@@ -88,7 +88,7 @@ jobs:
           V=${{ steps.version.outputs.version }}
           for i in serveur web-portail web-signataire icp; do
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/sortie" aquasec/trivy:0.58.1 image \
-              --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress vinasign/$i:$V
+              --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress --ignorefile /sortie/securite/donnees/.trivyignore vinasign/$i:$V
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/sortie" aquasec/trivy:0.58.1 image \
               --format cyclonedx --output /sortie/sbom-$i.cdx.json --no-progress vinasign/$i:$V
           done
