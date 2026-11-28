@@ -44,20 +44,33 @@ class ReferentielsJdbc implements Referentiels {
 
     @Override
     public List<TypeReferentiel> types() {
-        return jdbc.query(TYPES, (rs, n) -> type(rs));
+        return jdbc.query(TYPES, (rs, n) -> entete(rs)).stream().map(this::avecValeurs).toList();
     }
 
     @Override
     public Optional<TypeReferentiel> type(CodeReferentiel code) {
-        return jdbc.query(TYPE, new MapSqlParameterSource("code", code.valeur()), (rs, n) -> type(rs)).stream().findFirst();
+        return jdbc.query(TYPE, new MapSqlParameterSource("code", code.valeur()), (rs, n) -> entete(rs)).stream().findFirst().map(this::avecValeurs);
     }
 
-    private TypeReferentiel type(ResultSet rs) throws SQLException {
+    /** Ligne de referentiel_type, lue entièrement avant toute autre requête. */
+    private record Entete(Object id, String code, String libelles) {
+    }
+
+    private static Entete entete(ResultSet rs) throws SQLException {
+        return new Entete(rs.getObject("id"), rs.getString("code"), rs.getString("libelles"));
+    }
+
+    /**
+     * Les valeurs se lisent après que le résultat des types a rendu sa connexion : une requête lancée depuis le lecteur
+     * de lignes d'une autre emprunte une seconde connexion pendant que la première est tenue, et une rafale de lectures
+     * bloque alors tout le pool (chacune tient une connexion et attend l'autre).
+     */
+    private TypeReferentiel avecValeurs(Entete t) {
         List<ValeurReferentiel> valeurs = new ArrayList<>(jdbc.query(VALEURS,
-                new MapSqlParameterSource("type", rs.getObject("id")), (v, n) -> new ValeurReferentiel(
+                new MapSqlParameterSource("type", t.id()), (v, n) -> new ValeurReferentiel(
                         new CodeReferentiel(v.getString("code")), Libelles.de(carte(v.getString("libelles"))),
                         v.getInt("ordre"), carte(v.getString("attributs")), v.getBoolean("actif"))));
-        return new TypeReferentiel(new CodeReferentiel(rs.getString("code")), Libelles.de(carte(rs.getString("libelles"))), valeurs);
+        return new TypeReferentiel(new CodeReferentiel(t.code()), Libelles.de(carte(t.libelles())), valeurs);
     }
 
     /** Un JSON illisible en base est une corruption : elle se signale, elle ne se masque pas en liste vide. */
