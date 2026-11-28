@@ -2,16 +2,30 @@ import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalE
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { CONFIGURATION, ChargeurPdf, ChargeurPdfJs, ConfigurationVinaSign, TitreTraduit } from '@vinasign/commun';
-import { routes } from './app.routes';
+import { ROLES, routes } from './app.routes';
 import { CLIENT_OIDC, ClientOidc, creerClientOidc } from './connexion/client-oidc';
 import { jetonIntercepteur } from './connexion/jeton.intercepteur';
 import { SessionPortail } from './connexion/session-portail';
 
-/** Termine une connexion revenue du fournisseur avant la première navigation, puis rouvre l'écran demandé. */
+/**
+ * Écran de travail de la personne qui vient de se connecter, selon ses rôles ; null sans rôle utile au portail (la vitrine
+ * reste alors affichée). Les enveloppes d'abord : c'est l'usage courant ; la facturation pour l'administrateur seul.
+ */
+export function ecranDeTravail(session: SessionPortail): string | null {
+  if (session.aLeRole(ROLES.preparateur) || session.aLeRole(ROLES.auditeur)) {
+    return '/enveloppes';
+  }
+  return session.aLeRole(ROLES.administrateur) ? '/facturation' : null;
+}
+
+/**
+ * Termine une connexion revenue du fournisseur avant la première navigation, puis rouvre l'écran demandé. Une connexion
+ * lancée depuis la vitrine n'y ramène pas : elle ouvre l'écran de travail de la personne.
+ */
 export async function demarrerSession(session: SessionPortail, adresse: Location = window.location, historique: History = history): Promise<void> {
   const retour = await session.demarrer(adresse.href);
   if (retour !== null) {
-    historique.replaceState(null, '', retour);
+    historique.replaceState(null, '', retour === '/' ? ecranDeTravail(session) ?? '/' : retour);
   }
 }
 

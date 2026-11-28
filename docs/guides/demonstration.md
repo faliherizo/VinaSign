@@ -24,7 +24,7 @@ ssh deploy@51.222.86.37 cat ~/projets/VinaSign/deploy/ovh/secrets/comptes-demo.t
 
 | Compte | Rôle | Ce qu'il peut faire |
 |---|---|---|
-| `plateforme@vinasign.vinaitsolution.com` | administrateur de la plateforme | organisations, plans, applications clientes |
+| `plateforme@vinasign.vinaitsolution.com` | administrateur de la plateforme | organisations, plans, applications clientes — **par l'API seulement** : le portail n'a pas encore d'écran pour ce rôle, la connexion laisse donc sur la vitrine |
 | `admin@riviere-claire.vinasign.vinaitsolution.com` | administratrice de l'organisation de démonstration (Municipalité de Rivière-Claire) | utilisateurs et rôles de l'organisation, facturation |
 | `preparation@riviere-claire.vinasign.vinaitsolution.com` | préparatrice et auditrice (Rivière-Claire) | préparer, envoyer, suivre les enveloppes, télécharger documents et preuves |
 | `demo` (boîte des courriels) | — | lire les invitations envoyées aux signataires |
@@ -36,7 +36,9 @@ Les signataires, eux, n'ont **pas de compte** : ils signent par le lien personne
 
 ## 3. Tutoriel : faire signer un contrat
 
-1. **Se connecter** : sur la vitrine, « Se connecter au portail », avec le compte de la préparatrice.
+1. **Se connecter** : sur la vitrine, « Se connecter au portail », avec le compte de la **préparatrice**
+   (`preparation@riviere-claire…`). Après Keycloak, le portail ouvre directement « Enveloppes » ; l'administratrice arrive
+   sur « Facturation ». La vitrine reste accessible par « Accueil ».
 2. **Nouvelle enveloppe** : menu « Enveloppes » › « Nouvelle enveloppe ».
    - Référence : votre numéro de dossier (unique dans l'organisation) ; date limite de signature.
    - Document : un **PDF** ou un **Word** (.docx, converti en PDF/A au dépôt), 25 Mo au plus ; l'antivirus l'analyse.

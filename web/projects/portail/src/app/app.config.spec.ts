@@ -45,6 +45,21 @@ describe('demarrerSession', () => {
     expect(h.remplacees).toEqual(['/facturation']);
   });
 
+  function connectee(roles: string[]): SessionPortail {
+    return { demarrer: () => Promise.resolve('/'), aLeRole: (r: string) => roles.includes(r) } as unknown as SessionPortail;
+  }
+
+  it('une connexion lancée depuis la vitrine ouvre l\'écran de travail selon les rôles', async () => {
+    const cas: [string[], string][] = [[['preparateur'], '/enveloppes'], [['auditeur'], '/enveloppes'],
+      [['administrateur-organisation', 'auditeur'], '/enveloppes'], [['administrateur-organisation'], '/facturation'],
+      [['administrateur-plateforme'], '/'], [[], '/']];
+    for (const [roles, attendu] of cas) {
+      const h = historique();
+      await demarrerSession(connectee(roles), { href: 'https://portail.x/connexion/retour?code=c' } as Location, h);
+      expect(h.remplacees).withContext(roles.join(',')).toEqual([attendu]);
+    }
+  });
+
   it('ne touche pas l\'adresse en dehors d\'un retour', async () => {
     const h = historique();
     const session = { demarrer: () => Promise.resolve(null) } as unknown as SessionPortail;
