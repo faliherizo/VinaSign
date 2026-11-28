@@ -24,6 +24,10 @@
                 "input": "projects/portail/public"
               },
               {
+                "glob": "*.{svg,ico,png}",
+                "input": "projects/commun/icones"
+              },
+              {
                 "glob": "pdf.worker.min.mjs",
                 "input": "node_modules/pdfjs-dist/build",
                 "output": "pdfjs"
@@ -98,6 +102,10 @@
                 "input": "projects/portail/public"
               },
               {
+                "glob": "*.{svg,ico,png}",
+                "input": "projects/commun/icones"
+              },
+              {
                 "glob": "pdf.worker.min.mjs",
                 "input": "node_modules/pdfjs-dist/build",
                 "output": "pdfjs"
@@ -131,6 +139,10 @@
               {
                 "glob": "**/*",
                 "input": "projects/signataire/public"
+              },
+              {
+                "glob": "*.{svg,ico,png}",
+                "input": "projects/commun/icones"
               },
               {
                 "glob": "pdf.worker.min.mjs",
@@ -205,6 +217,10 @@
               {
                 "glob": "**/*",
                 "input": "projects/signataire/public"
+              },
+              {
+                "glob": "*.{svg,ico,png}",
+                "input": "projects/commun/icones"
               },
               {
                 "glob": "pdf.worker.min.mjs",
